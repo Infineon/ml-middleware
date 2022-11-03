@@ -5,17 +5,37 @@
 * This file contains interface for ML validation data streaming feature
 *
 *******************************************************************************
-* \copyright
-* Copyright 2021, Cypress Semiconductor Corporation (an Infineon company).
-* All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions,
-* disclaimers, and limitations in the end user license agreement accompanying
-* the software package with which this file was provided.
-******************************************************************************/
-
-/*******************************************************************************
-* Include header file
-******************************************************************************/
+* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
+*******************************************************************************
+* This software, including source code, documentation and related materials
+* ("Software"), is owned by Cypress Semiconductor Corporation or one of its
+* subsidiaries ("Cypress") and is protected by and subject to worldwide patent
+* protection (United States and foreign), United States copyright laws and
+* international treaty provisions. Therefore, you may use this Software only
+* as provided in the license agreement accompanying the software package from
+* which you obtained this Software ("EULA").
+*
+* If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
+* non-transferable license to copy, modify, and compile the Software source
+* code solely for use in connection with Cypress's integrated circuit products.
+* Any reproduction, modification, translation, compilation, or representation
+* of this Software except as specified above is prohibited without the express
+* written permission of Cypress.
+*
+* Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
+* reserves the right to make changes to the Software without notice. Cypress
+* does not assume any liability arising out of the application or use of the
+* Software or any product or circuit described in the Software. Cypress does
+* not authorize its products for use in any products where a malfunction or
+* failure of the Cypress product may reasonably be expected to result in
+* significant property damage, injury or death ("High Risk Product"). By
+* including Cypress's product in a High Risk Product, the manufacturer of such
+* system or application assumes all risk of such use and in doing so agrees to
+* indemnity Cypress against all liability.
+*******************************************************************************/
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -27,7 +47,6 @@
 #include "cybsp.h"
 #include "cy_retarget_io.h"
 
-#include "cy_ml_inference.h"
 #include "mtb_ml_common.h"
 #include "mtb_ml_utils.h"
 #include "mtb_ml_stream.h"
@@ -38,18 +57,22 @@
 typedef struct
 {
     mtb_ml_model_t *model_object;           /* Pointer of model object */
-    cy_stc_ml_model_info_t *model_info;     /* Interpreted model information */
     void *interface;                        /* Communication interface object */
-    CY_ML_DATA_TYPE_T* out;                 /* Model output buffer */
+    MTB_ML_DATA_T* out;                     /* Model output buffer */
     uint8_t *rx_buff;                       /* Receive buffer for frame data */
-    unsigned int model_sz;                  /* ML model weight data size */
-    mtb_ml_model_bin_t *model_bin;          /* Model binary structure */
+    const mtb_ml_model_bin_t *model_bin;    /* Model binary structure */
 } mtb_ml_stream_t;
 
-static cy_ml_dataset_header_t dataset_info = {0};
+static cy_ml_dataset_header_t dataset_info = {
+    .data_type = MTB_ML_X_DATA_UNKNOWN,
+    .n_ex = 0,
+    .in_sz = 0,
+    .q_fixed = 0,
+    .input_size = 0,
+    .output_size = 0,
+    .baud_rate = 0
+};
 static cyhal_uart_t *uartobj;
-
-extern unsigned int MTB_ML_MODEL_WTS_LEN(MODEL_NAME);
 
 mtb_ml_stream_t stream_obj;
 
@@ -195,7 +218,7 @@ static cy_rslt_t mtb_ml_stream_handshake(void)
     }
 
     /* Print the model info */
-    mtb_ml_model_info(stream_obj.model_object, stream_obj.model_bin);
+    mtb_ml_utils_print_model_info(stream_obj.model_object);
 
     /* Indicate the host that we are ready (ML_READY) */
     result = uart_send_data(ML_CT_READY_STRING, sizeof(ML_CT_READY_STRING));
@@ -223,12 +246,20 @@ static cy_rslt_t mtb_ml_stream_handshake(void)
     }
 
     /* send model info */
-    model_regr_info.model_sz = stream_obj.model_sz;
-    model_regr_info.n_out_classes = stream_obj.model_info->output_size;
-    model_regr_info.persistent_mem = stream_obj.model_info->persistent_mem;
-    model_regr_info.scratch_mem = stream_obj.model_info->scratch_mem;
-    model_regr_info.recurrent_ts_size = stream_obj.model_info->recurrent_ts_size;
-
+    model_regr_info.model_size = stream_obj.model_object->model_size;
+    model_regr_info.output_size = stream_obj.model_object->output_size;
+    model_regr_info.buffer_size = stream_obj.model_object->buffer_size;
+    model_regr_info.engine_type = ENG_TFLM;
+    model_regr_info.recurrent_ts_size = 0;
+#if defined(COMPONENT_ML_IFX)
+    model_regr_info.engine_type = ENG_IFX;
+    cy_stc_ml_model_info_t *model_info = &stream_obj.model_object->model_info;
+    model_regr_info.recurrent_ts_size = model_info->recurrent_ts_size;
+#else
+    // output_scale and output_zero_point are only available for TFLM
+    model_regr_info.output_zero_point = stream_obj.model_object->output_zero_point;
+    model_regr_info.output_scale = stream_obj.model_object->output_scale;
+#endif
     result = uart_send_data((char *)&model_regr_info, sizeof(model_regr_info));
     if (result != MTB_ML_RESULT_SUCCESS)
     {
@@ -270,7 +301,6 @@ cy_rslt_t mtb_ml_stream_task()
     cy_rslt_t result = MTB_ML_RESULT_SUCCESS;
 
     mtb_ml_model_t *model_object = stream_obj.model_object;
-    cy_stc_ml_model_info_t *model_info = stream_obj.model_info;
 
     void *in_buffer = NULL;
 
@@ -294,18 +324,18 @@ cy_rslt_t mtb_ml_stream_task()
     printf("\r\n");
 #endif
 
-    if (in_sz != model_info->input_size)
+    if (in_sz != model_object->input_size)
     {
         printf("ERROR: input buffer size error, input size=%d, model input size=%d, aborting... \r\n",
-                in_sz, model_info->input_size);
+                in_sz, model_object->input_size);
         result = MTB_ML_RESULT_BAD_ARG;
         return result;
     }
 
-    if(dataset_info.output_size != sizeof(CY_ML_DATA_TYPE_T))
+    if(dataset_info.output_size != sizeof(MTB_ML_DATA_T))
     {
         printf("ERROR: Streaming data size (%d) doesn't match NN data size (%d), aborting\r\n",
-                dataset_info.output_size, sizeof(CY_ML_DATA_TYPE_T));
+                dataset_info.output_size, sizeof(MTB_ML_DATA_T));
         result = MTB_ML_RESULT_BAD_ARG;
         return result;
     }
@@ -318,10 +348,15 @@ cy_rslt_t mtb_ml_stream_task()
         return result;
     }
 
-#if !COMPONENT_ML_FLOAT32
+    int recurrent_ts_size = mtb_ml_model_get_recurrent_time_series_frames(model_object);
+    if(recurrent_ts_size > 0)
+    {
+        /* Perform recurrent NN reset (rnn_status = 1) */
+        mtb_ml_model_rnn_state_control(model_object, 1, recurrent_ts_size);
+    }
+
     /* Setup q-factor if input data is in Q-format */
     mtb_ml_model_set_input_q_fraction_bits(model_object, dataset_info.q_fixed);
-#endif
     /* Do frame-by-frame inference */
     for (int j = 0; j < n_ex; j++)
     {
@@ -352,18 +387,22 @@ cy_rslt_t mtb_ml_stream_task()
         in_buffer = stream_obj.rx_buff;
 
         /* Run inference */
-        result = mtb_ml_model_run(model_object, in_buffer, stream_obj.out);
+        result = mtb_ml_model_run(model_object, in_buffer);
         if (result != MTB_ML_RESULT_SUCCESS)
         {
-            int err = model_object->ml_error;
+            int err = model_object->lib_error;
+#if defined(COMPONENT_ML_IFX)
             printf("ERROR: Inference error code=%x, Layer index=%d, Line number=%d, Frame number=%d, aborting\r\n",
             CY_ML_ERR_CODE(err), CY_ML_ERR_LAYER_INDEX(err), CY_ML_ERR_LINE_NUMBER(err), j);
+#elif defined(COMPONENT_ML_TFLM_INTERPRETER) || defined(COMPONENT_ML_TFLM_INTERPRETER_LESS)
+            printf("Inference eror: Tflite-Micro status: %d\r\n", err);
+#endif
             return result;
         }
 
         /* Recurrent GRU network only check accuracy at its end of time series */
-        if ( model_info->recurrent_ts_size == 0 ||
-            (model_info->recurrent_ts_size != 0 && ts_cnt == model_info->recurrent_ts_size))
+        if ( recurrent_ts_size == 0 ||
+            (recurrent_ts_size != 0 && ts_cnt == recurrent_ts_size))
         {
             ts_cnt = 0;
             result = uart_send_data(ML_CT_RESULT_STRING, sizeof(ML_CT_RESULT_STRING));
@@ -372,7 +411,7 @@ cy_rslt_t mtb_ml_stream_task()
                 printf("ERROR: failed to send %s to host\n", ML_CT_RESULT_STRING);
                 return result;
             }
-            result = uart_send_data((char *)stream_obj.out, dataset_info.output_size*model_info->output_size);
+            result = uart_send_data((char *)stream_obj.out, dataset_info.output_size * model_object->output_size);
             if(result != MTB_ML_RESULT_SUCCESS)
             {
                 printf("ERROR: failed to send output data to host\n");
@@ -416,8 +455,8 @@ cy_rslt_t mtb_ml_stream_task()
 /**
  * Initialize stream
  */
-cy_rslt_t mtb_ml_stream_init(mtb_ml_stream_interface_t *interface, mtb_ml_profile_config_t profile_cfg,
-                             mtb_ml_model_bin_t *model_bin)
+cy_rslt_t mtb_ml_stream_init(const mtb_ml_stream_interface_t *interface, mtb_ml_profile_config_t profile_cfg,
+                             const mtb_ml_model_bin_t *model_bin)
 {
     if(!interface || !model_bin)
     {
@@ -444,29 +483,20 @@ cy_rslt_t mtb_ml_stream_init(mtb_ml_stream_interface_t *interface, mtb_ml_profil
     }
 
     stream_obj.model_bin = model_bin;
-    stream_obj.model_info = &stream_obj.model_object->model_info;
-    stream_obj.model_sz = MTB_ML_MODEL_WTS_LEN(MODEL_NAME);
 
     /* Allocate buffers */
 
     /* Get the model output size */
-    int output_size = mtb_ml_model_get_output_size(stream_obj.model_object);
-    /* Allocate output buffer */
-    stream_obj.out = malloc(output_size * sizeof(MTB_ML_DATA_T));
-    if (stream_obj.out == NULL)
-    {
-        printf("ERROR: Allocate output buffer failed, exiting MTB ML!\r\n");
-        mtb_ml_model_deinit(stream_obj.model_object);
-        return MTB_ML_RESULT_ALLOC_ERR;
-    }
+    int output_size;
+    mtb_ml_model_get_output(stream_obj.model_object, &stream_obj.out, &output_size);
 
     /* allocate rx buffer (frame data) */
-    stream_obj.rx_buff = (uint8_t *)malloc(stream_obj.model_info->input_size * sizeof(MTB_ML_DATA_T));
+    int input_size = mtb_ml_model_get_input_size(stream_obj.model_object);
+    stream_obj.rx_buff = (uint8_t *)malloc(input_size * sizeof(MTB_ML_DATA_T));
     if (stream_obj.rx_buff == NULL)
     {
         printf("ERROR: Allocate memory for RX buffer failed\r\n");
         mtb_ml_model_deinit(stream_obj.model_object);
-        free(stream_obj.out);
         return MTB_ML_RESULT_ALLOC_ERR;
     }
 
@@ -483,6 +513,5 @@ void mtb_ml_stream_deinit(void)
 {
     /* Free resources and delete model runtime contex */
     mtb_ml_model_deinit(stream_obj.model_object);
-    free(stream_obj.out);
     free(stream_obj.rx_buff);
 }

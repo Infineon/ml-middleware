@@ -6,116 +6,76 @@
 * middleware model module
 *
 *******************************************************************************
-* \copyright
-* Copyright 2021, Cypress Semiconductor Corporation (an Infineon company).
-* All rights reserved.
-* You may use this file only in accordance with the license, terms, conditions,
-* disclaimers, and limitations in the end user license agreement accompanying
-* the software package with which this file was provided.
-******************************************************************************/
+* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
+*******************************************************************************
+* This software, including source code, documentation and related materials
+* ("Software"), is owned by Cypress Semiconductor Corporation or one of its
+* subsidiaries ("Cypress") and is protected by and subject to worldwide patent
+* protection (United States and foreign), United States copyright laws and
+* international treaty provisions. Therefore, you may use this Software only
+* as provided in the license agreement accompanying the software package from
+* which you obtained this Software ("EULA").
+*
+* If no EULA applies, Cypress hereby grants you a personal, non-exclusive,
+* non-transferable license to copy, modify, and compile the Software source
+* code solely for use in connection with Cypress's integrated circuit products.
+* Any reproduction, modification, translation, compilation, or representation
+* of this Software except as specified above is prohibited without the express
+* written permission of Cypress.
+*
+* Disclaimer: THIS SOFTWARE IS PROVIDED AS-IS, WITH NO WARRANTY OF ANY KIND,
+* EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, NONINFRINGEMENT, IMPLIED
+* WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE. Cypress
+* reserves the right to make changes to the Software without notice. Cypress
+* does not assume any liability arising out of the application or use of the
+* Software or any product or circuit described in the Software. Cypress does
+* not authorize its products for use in any products where a malfunction or
+* failure of the Cypress product may reasonably be expected to result in
+* significant property damage, injury or death ("High Risk Product"). By
+* including Cypress's product in a High Risk Product, the manufacturer of such
+* system or application assumes all risk of such use and in doing so agrees to
+* indemnity Cypress against all liability.
+*******************************************************************************/
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
-#include <inttypes.h>
 
 #include "mtb_ml_common.h"
 #include "mtb_ml_model.h"
-#include "cy_device_headers.h" /* for memory region definitions */
 
-#define MEM_RANGE(x,y,z) y <= x && x < (y + z)
-
-#ifndef  FLOAT_ABI
-#define FLOAT_ABI Unknown
-#endif //#ifndef  FLOAT_ABI
-
-#ifndef  BUILD_HOST
-#define BUILD_HOST Unknown
-#endif //#ifndef  BUILD_HOST
-
-#ifndef  CONFIG
-#define CONFIG Unknown
-#endif //#ifndef  CONFIG
-
-/**
- * Get NN model memory type
- */
-static char * memory_area(uint32_t addr)
+/* LCOV_EXCL_START (Excluded from the code coverage, until the STOP marker) */
+int __attribute__((weak)) mtb_ml_model_profile_get_tsc(uint32_t *val)
 {
-    if (MEM_RANGE(addr, CY_SRAM_BASE, CY_SRAM_SIZE))
-    {
-        return "RAM";
-    }
-    else if (MEM_RANGE(addr, CY_FLASH_BASE, CY_FLASH_SIZE))
-    {
-        return "FLASH";
-    }
-    else if (MEM_RANGE(addr, CY_EM_EEPROM_BASE, CY_EM_EEPROM_SIZE))
-    {
-        return "EEPROM";
-    }
-    return "unknown";
+    return 0;
 }
+/* LCOV_EXCL_STOP */
 
-/**
- * Print detailed model info
- */
-cy_rslt_t mtb_ml_model_info(mtb_ml_model_t *obj, mtb_ml_model_bin_t *bin)
+static cy_en_ml_profile_config_t convert_profile_config(mtb_ml_profile_config_t config)
 {
-    cy_stc_ml_model_info_t *model_info;
-    uint32_t model_address;
-    char *memory_type;
-
-    if ((obj == NULL) || (bin == NULL)) {
-        return MTB_ML_RESULT_BAD_ARG;
+    switch (config)
+    {
+        case MTB_ML_PROFILE_DISABLE:
+            return CY_ML_PROFILE_DISABLE;
+        case MTB_ML_PROFILE_ENABLE_MODEL:
+            return CY_ML_PROFILE_ENABLE_MODEL;
+        case MTB_ML_PROFILE_ENABLE_LAYER:
+            return CY_ML_PROFILE_ENABLE_LAYER;
+        case MTB_ML_PROFILE_ENABLE_MODEL_PER_FRAME:
+            return CY_ML_PROFILE_ENABLE_MODEL_PER_FRAME;
+        case MTB_ML_PROFILE_ENABLE_LAYER_PER_FRAME:
+            return CY_ML_PROFILE_ENABLE_LAYER_PER_FRAME;
+        case MTB_ML_LOG_ENABLE_MODEL_LOG:
+            return CY_ML_LOG_ENABLE_MODEL_LOG;
+        default:
+            /* disable profiling if the config is not supported */
+            return CY_ML_PROFILE_DISABLE;
     }
-
-    model_info = &obj->model_info;
-    model_address = (uint32_t)bin->wts_bin;
-    memory_type = memory_area(model_address);
-
-    printf("\r\n***************************************************\r\n");
-    printf("MTB ML inference\r\n");
-    printf("\tBuild host       \t:\t%s\r\n", EXPAND_AND_STRINGIFY(BUILD_HOST));
-#if defined(__ARMCC_VERSION)
-    printf("\tCompiler         \t:\t%s%u\r\n", "ARM CLANG ", __ARMCC_VERSION);
-#elif defined(__ICCARM__)
-    printf("\tCompiler         \t:\t%s%u\r\n", "IAR ", __VER__);
-#elif defined(__GNUC__)
-    printf("\tCompiler         \t:\t%s%u.%u\r\n", "GCC ", __GNUC__, __GNUC_MINOR__ );
-#else
-    printf("\tCompiler         \t:\t%s\r\n", "Unknown ");
-#endif
-    printf("\tConfig           \t:\t%s\r\n", EXPAND_AND_STRINGIFY(CONFIG));
-    printf("\tFloat ABI        \t:\t%s\r\n", EXPAND_AND_STRINGIFY(FLOAT_ABI));
-    printf("\tModel name       \t:\t%s\r\n", bin->name);
-    printf("\tModel memory:    \t:\t%s (0x%.8"PRIx32")\r\n", memory_type, model_address);
-    printf("\tLayers           \t:\t%d\r\n", model_info->num_of_layers);
-    printf("\tInput_nodes      \t:\t%d\r\n", model_info->input_size);
-    printf("\tOutput_nodes     \t:\t%d\r\n", model_info->output_size);
-    printf("\tML Lib Version   \t:\t%d\r\n", model_info->libml_version);
-    printf("\tML Lib Input Type\t:\t%s\r\n", model_info->libml_input_type == CY_ML_DATA_FLOAT ? "floating-point" :
-                                             (model_info->libml_input_type == CY_ML_DATA_INT16 ? "int16" : "int8"));
-    printf("\tML Lib Weight Type\t:\t%s\r\n", model_info->libml_weight_type == CY_ML_DATA_FLOAT ? "floating-point" :
-                                             (model_info->libml_weight_type == CY_ML_DATA_INT16 ? "int16" : "int8"));
-    printf("\tML Coretool Version\t:\t0x%"PRIx32"", model_info->ml_coretool_version);
-    printf("\r\n\r\n");
-    printf("Memory usage: \r\n");
-    printf("\tScratch memory(%s)    \t: %8.2f kB\r\n", obj->flags & MTB_ML_MEM_DYNAMIC_PERSISTENT ?
-                                                       "dynamic" : "static",
-                                                       model_info->scratch_mem  / 1024.0);
-    printf("\tPersistent memory(%s) \t: %8.2f kB\r\n", obj->flags & MTB_ML_MEM_DYNAMIC_SCRATCH ?
-                                                       "dynamic" : "static",
-                                                       model_info->persistent_mem  / 1024.0);
-    printf("\tWeights & biases  \t: %8.2f kB", (bin->wts_size + bin->prms_size)  / 1024.0);
-    printf("\r\n***************************************************\r\n");
-
-    return MTB_ML_RESULT_SUCCESS;
 }
 
 /**
  *  Allocate and initialize NN model runtime object
  */
-cy_rslt_t mtb_ml_model_init(mtb_ml_model_bin_t *bin, mtb_ml_model_buffer_t *buffer, mtb_ml_model_t **object)
+cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_buffer_t *buffer, mtb_ml_model_t **object)
 {
     mtb_ml_model_t *model_object = NULL;
     int status;
@@ -135,6 +95,12 @@ cy_rslt_t mtb_ml_model_init(mtb_ml_model_bin_t *bin, mtb_ml_model_buffer_t *buff
         return MTB_ML_RESULT_ALLOC_ERR;
     }
 
+    /* Copy the model name */
+    memcpy(model_object->name, bin->name, MTB_ML_MODEL_NAME_LEN);
+
+    /* Get model buffer size */
+    model_object->model_size = bin->wts_size + bin->prms_size;
+
     /* Get the NN model information by parsing the model parameters data */
     status = Cy_ML_Model_Parse((char *) bin->prms_bin, &model_object->model_info);
     if (status != CY_ML_SUCCESS)
@@ -142,6 +108,12 @@ cy_rslt_t mtb_ml_model_init(mtb_ml_model_bin_t *bin, mtb_ml_model_buffer_t *buff
         ret = MTB_ML_RESULT_BAD_MODEL;
         goto RET_ERR;
     }
+
+    /* Get workign buffer size */
+    model_object->buffer_size = model_object->model_info.scratch_mem + model_object->model_info.persistent_mem;
+
+    model_object->input_size = model_object->model_info.input_size;
+    model_object->output_size = model_object->model_info.output_size;
 
     /* Allocate persistent buffer */
     if(buffer == NULL || buffer->persistent == NULL)
@@ -175,6 +147,14 @@ cy_rslt_t mtb_ml_model_init(mtb_ml_model_bin_t *bin, mtb_ml_model_buffer_t *buff
         model_object->s_mem = buffer->scratch;
     }
 
+    /* Allocate output buffer */
+    model_object->output = malloc(model_object->model_info.output_size * sizeof(MTB_ML_DATA_T));
+    if (model_object->output == NULL)
+    {
+        ret = MTB_ML_RESULT_ALLOC_ERR;
+        goto RET_ERR;
+    }
+
     /* Initialize model and get model object */
     status = Cy_ML_Model_Init(&model_object->inference_obj,
                               (char *)bin->prms_bin, (char *)bin->wts_bin,
@@ -201,6 +181,10 @@ RET_ERR:
         free(model_object->s_mem);
         model_object->s_mem = NULL;
     }
+    if (model_object->output)
+    {
+        free(model_object->output);
+    }
     free(model_object);
     return ret;
 }
@@ -226,6 +210,10 @@ cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object)
         free(object->s_mem);
         object->s_mem = NULL;
     }
+    if (object->output)
+    {
+        free(object->output);
+    }
     free(object);
     return MTB_ML_RESULT_SUCCESS;
 }
@@ -233,11 +221,11 @@ cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object)
 /**
  * Perform NN model inference
  */
-cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input, MTB_ML_DATA_T *output)
+cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
 {
     int ret;
     /* Sanity check of input parameters */
-    if (object == NULL || input == NULL || output == NULL)
+    if (object == NULL || input == NULL)
     {
         return MTB_ML_RESULT_BAD_ARG;
     }
@@ -245,7 +233,7 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input, MTB_ML_
     /* Initialize output q-factor - acting as input and output q-factor */
     object->output_q_n = object->input_q_n;
 
-    ret = Cy_ML_Model_Inference(object->inference_obj, input, output,
+    ret = Cy_ML_Model_Inference(object->inference_obj, input, object->output,
 #if COMPONENT_ML_FLOAT32
                                 NULL
 #else
@@ -255,7 +243,7 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input, MTB_ML_
 
     if (ret != CY_ML_SUCCESS)
     {
-        object->ml_error = ret;
+        object->lib_error = ret;
         return MTB_ML_RESULT_INFERENCE_ERROR;
     }
 
@@ -265,7 +253,7 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input, MTB_ML_
 /**
  * Get NN model input data size
  */
-int mtb_ml_model_get_input_size(mtb_ml_model_t *object)
+int mtb_ml_model_get_input_size(const mtb_ml_model_t *object)
 {
     if (object == NULL)
     {
@@ -273,29 +261,37 @@ int mtb_ml_model_get_input_size(mtb_ml_model_t *object)
     }
     else
     {
-        return object->model_info.input_size;
+        return object->input_size;
     }
 }
 
 /**
  * Get NN model output data size
  */
-int mtb_ml_model_get_output_size(mtb_ml_model_t *object)
+cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int* size_ptr)
 {
     if (object == NULL)
     {
-        return 0;
+        return MTB_ML_RESULT_BAD_ARG;
     }
-    else
+
+    if (output_pptr != NULL)
     {
-        return object->model_info.output_size;
+        *output_pptr = object->output;
     }
+
+    if (size_ptr != NULL)
+    {
+         *size_ptr = object->output_size;
+    }
+
+    return MTB_ML_RESULT_SUCCESS;
 }
 
 /**
  * Get the number of frame in recurrent model time series
  */
-int mtb_ml_model_get_recurrent_time_series_frames(mtb_ml_model_t *object)
+int mtb_ml_model_get_recurrent_time_series_frames(const mtb_ml_model_t *object)
 {
     if (object == NULL)
     {
@@ -321,7 +317,7 @@ cy_rslt_t mtb_ml_model_rnn_state_control(mtb_ml_model_t *object, int status, int
     result = Cy_ML_Rnn_State_Control(object->inference_obj, status, win_size);
     if (result != CY_ML_SUCCESS)
     {
-        object->ml_error = result;
+        object->lib_error = result;
         return MTB_ML_RESULT_BAD_ARG;
     }
     return MTB_ML_RESULT_SUCCESS;
@@ -330,7 +326,7 @@ cy_rslt_t mtb_ml_model_rnn_state_control(mtb_ml_model_t *object, int status, int
 /**
  * Get MTB ML inference runtime object
  */
-void* mtb_ml_model_get_inference_object(mtb_ml_model_t *object)
+void* mtb_ml_model_get_inference_object(const mtb_ml_model_t *object)
 {
     if (object == NULL)
     {
@@ -353,7 +349,7 @@ cy_rslt_t mtb_ml_model_profile_config(mtb_ml_model_t *object, mtb_ml_profile_con
         return MTB_ML_RESULT_BAD_ARG;
     }
 
-    Cy_ML_Profile_Control(object->inference_obj, config);
+    Cy_ML_Profile_Control(object->inference_obj, convert_profile_config(config));
     return MTB_ML_RESULT_SUCCESS;
 }
 
@@ -372,7 +368,6 @@ cy_rslt_t mtb_ml_model_profile_log(mtb_ml_model_t *object)
     return MTB_ML_RESULT_SUCCESS;
 }
 
-#if !COMPONENT_ML_FLOAT32
 /**
  * Set NN model input data Q-format fraction bits
  */
@@ -391,15 +386,22 @@ cy_rslt_t mtb_ml_model_set_input_q_fraction_bits(mtb_ml_model_t *object, uint8_t
 /**
  * Get NN model output data Q-format fraction bits
  */
-uint8_t mtb_ml_model_get_output_q_fraction_bits(mtb_ml_model_t *object)
+uint8_t mtb_ml_model_get_output_q_fraction_bits(const mtb_ml_model_t *object)
 {
     /* Sanity check of input parameters */
     if (object == NULL)
     {
         return 0;
     }
-
+#if COMPONENT_ML_FLOAT32
+    return 0;
+#else
     return object->output_q_n;
+#endif
 }
 
-#endif /* !COMPONENT_ML_FLOAT32 */
+inline int Cy_ML_Profile_Get_Tsc( uint32_t *val )
+{
+    return mtb_ml_model_profile_get_tsc(val);
+}
+

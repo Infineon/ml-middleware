@@ -9,12 +9,6 @@ This release of the ModusToolbox™ ML Middleware library includes support for t
 * model - functions to initialize and inference a ML model
 * stream - functions to stream validation data
 
-Support following typical ML model:
-* MLP - Dense feed-forward network
-* CONV1D
-* CONV2D
-* RNNs - GRU
-
 Support floating-point and fixed-point variants:
 * 32-bit floating-point
 * 16-bit fixed-point input
@@ -31,25 +25,24 @@ The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 ### Supported Software and Tools
 This version of the was validated for compatibility with the following Software and Tools:
 
-| Software and Tools                        | Version |
-| :---                                      | :----:  |
-| ML Inference                              | 1.2.0   |
-| ML Core tools                             | 1.2.0   |
-| GCC Compiler                              | 10.3.1  |
-| ARM Compiler 6                            | 6.13    |
-| IAR Compiler                              | 8.42.1  |
-| Cmake                                     | 3.14    |
-| PSoC 6 Board Support Package (BSP)        | 2.2.0   |
-| PSoC 6 Peripheral Driver Library (PDL)    | 2.3.0   |
-| CyBridge                                  | 3.2.0   |
+| Software and Tools                        | Version       |
+| :---                                      | :----:        |
+| ML Inference                              | 2.0.0         |
+| ML TFLiteU                                | 2.0.0         |
+| ML Core tools                             | 2.0.0         |
+| GCC Compiler                              | 10.3-2021.07  |
+| ARM Compiler 6                            | 6.16          |
+| IAR Compiler                              | 9.30.1        |
+| CyBridge                                  | 3.4.0         |
 
-Minimum required ModusToolbox™ Software Environment: v2.4
+Minimum required ModusToolbox™ Software Environment: v3.0
 
 ### More information
 Use the following links for more information, as needed:
+* [ModusToolbox™ Machine Learning Design Support](https://www.infineon.com/cms/en/design-support/tools/sdk/modustoolbox-software/modustoolbox-machine-learning/)
 * [Cypress Semiconductor, an Infineon Technologies Company](http://www.cypress.com)
 * [Cypress Semiconductor GitHub](https://github.com/Infineon)
 * [ModusToolbox](https://www.cypress.com/products/modustoolbox)
 
 ---
-© Cypress Semiconductor Corporation, 2021.
+© 2021-2022, Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.
