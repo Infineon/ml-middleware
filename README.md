@@ -48,6 +48,11 @@ The ml-tflite-micro and ml-inference libraries are available as a ModusToolboxâ„
 
 Refer to the ml-tflite-micro/ml-inference README.md files for further information on the `COMPONENTS` and `DEFINES` that must be added in order to select the preferred inference engine.
 
+### Using CMSIS DSP
+
+Some of the mtb ml utils functions from the ml-middleware library can use the CMSIS-DSP functions to accelerate its execution. To enable it, add `CMSIS_DSP` in your makefile COMPONENTS list and `MTB_ML_HAVING_CMSIS_DSP` must be added to the `DEFINES`.
+NOTE: In the next release `MTB_ML_HAVING_CMSIS_DSP` will be deprecated and mtb ml utils functions will only check that the `CMSIS_DSP` component has been added.
+
 ### Using the library - ML stream
 
 1. Make sure the application includes header files and selected model:

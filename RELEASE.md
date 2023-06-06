@@ -19,6 +19,11 @@ Support floating-point and fixed-point variants:
 The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 
 ## What Changed?
+
+### v2.0.1
+* Added mtb_ml_utils_model_quantize & mtb_ml_utils_convert_tflm_flt_to_int8 functions
+### v2.0.0
+* Support for TensorFlow Lite Micro
 #### v1.0.0
 * Initial release
 

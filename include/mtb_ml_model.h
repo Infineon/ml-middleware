@@ -150,6 +150,7 @@ typedef struct
     int input_size;                     /**< array size of input data */
     int output_size;                    /**< array size of output data */
     int lib_error;                      /**< error code from ML inference library */
+    MTB_ML_DATA_T *input;               /**< pointer of the ML inference input buffer */
     MTB_ML_DATA_T *output;              /**< pointer of ML inference output buffer */
 /**@}*/
 #if defined(COMPONENT_ML_IFX)
@@ -172,6 +173,8 @@ typedef struct
  */
 /**@{*/
     void *tflm_obj;                     /**< pointer of Tflite-micro runtime object */
+    int input_zero_point;               /**< zero point of input data */
+    float input_scale;                  /**< scale of input data*/
     int output_zero_point;              /**< zero point of output data */
     float output_scale;                 /**< scale of output data */
     mtb_ml_profile_config_t profiling;  /**< flags of profiling */

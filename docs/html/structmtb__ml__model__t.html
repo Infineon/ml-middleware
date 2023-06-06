@@ -112,6 +112,8 @@ Data Fields</h2></td></tr>
 <tr class="separator:ad8d3d4ec9395e78bb589ab744c5fbaaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aecc39e5f86840176fb334bdefb9dcd89"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#aecc39e5f86840176fb334bdefb9dcd89">lib_error</a></td></tr>
 <tr class="separator:aecc39e5f86840176fb334bdefb9dcd89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acde56bb9009162504b81ef54b501da4c"><td class="memItemLeft" align="right" valign="top">MTB_ML_DATA_T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#acde56bb9009162504b81ef54b501da4c">input</a></td></tr>
+<tr class="separator:acde56bb9009162504b81ef54b501da4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2b3ec4488819fa414ea7fbbc5ab7a16"><td class="memItemLeft" align="right" valign="top">MTB_ML_DATA_T *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#af2b3ec4488819fa414ea7fbbc5ab7a16">output</a></td></tr>
 <tr class="separator:af2b3ec4488819fa414ea7fbbc5ab7a16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><div class="groupHeader">COMPONENT_ML_IFX</div></td></tr>
@@ -136,6 +138,10 @@ Data Fields</h2></td></tr>
 </div></td></tr>
 <tr class="memitem:a573f9afd5b34a5e6f528594fbb1973c2"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#a573f9afd5b34a5e6f528594fbb1973c2">tflm_obj</a></td></tr>
 <tr class="separator:a573f9afd5b34a5e6f528594fbb1973c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50515faa2dc017c101ebe8d12152b327"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#a50515faa2dc017c101ebe8d12152b327">input_zero_point</a></td></tr>
+<tr class="separator:a50515faa2dc017c101ebe8d12152b327"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9f7217c67b3eff7e81a4f7c73ec6531e"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#a9f7217c67b3eff7e81a4f7c73ec6531e">input_scale</a></td></tr>
+<tr class="separator:a9f7217c67b3eff7e81a4f7c73ec6531e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd0bb3e22f382c2aca3ab8270a13e12f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#afd0bb3e22f382c2aca3ab8270a13e12f">output_zero_point</a></td></tr>
 <tr class="separator:afd0bb3e22f382c2aca3ab8270a13e12f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe74b0038986cf36385f332b82452ef6"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__t.html#abe74b0038986cf36385f332b82452ef6">output_scale</a></td></tr>
@@ -226,6 +232,21 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a id="acde56bb9009162504b81ef54b501da4c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acde56bb9009162504b81ef54b501da4c">&#9670;&nbsp;</a></span>input</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MTB_ML_DATA_T* input</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>pointer of the ML inference input buffer </p>
+
+</div>
+</div>
 <a id="a7063259cbe63c9fbdea4616a3b31b4af"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7063259cbe63c9fbdea4616a3b31b4af">&#9670;&nbsp;</a></span>input_q_n</h2>
 
@@ -241,6 +262,21 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
+<a id="a9f7217c67b3eff7e81a4f7c73ec6531e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f7217c67b3eff7e81a4f7c73ec6531e">&#9670;&nbsp;</a></span>input_scale</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">float input_scale</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>scale of input data </p>
+
+</div>
+</div>
 <a id="a1797e6ef78400a7367ea7b16c5fbca66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1797e6ef78400a7367ea7b16c5fbca66">&#9670;&nbsp;</a></span>input_size</h2>
 
@@ -253,6 +289,21 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>array size of input data </p>
+
+</div>
+</div>
+<a id="a50515faa2dc017c101ebe8d12152b327"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50515faa2dc017c101ebe8d12152b327">&#9670;&nbsp;</a></span>input_zero_point</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int input_zero_point</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>zero point of input data </p>
 
 </div>
 </div>

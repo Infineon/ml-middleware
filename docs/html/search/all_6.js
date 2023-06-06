@@ -44,5 +44,6 @@ var searchData=
   ['mtb_5fml_5futils_5ffind_5fmax',['mtb_ml_utils_find_max',['../group__Utils__API.html#ga6daea933527d7f7ce1ae23b2551a62ec',1,'mtb_ml_utils.h']]],
   ['mtb_5fml_5futils_5ffind_5fmax_5fint32',['mtb_ml_utils_find_max_int32',['../group__Utils__API.html#gaa79c1696e23d16de5d82f355ed57c95b',1,'mtb_ml_utils.h']]],
   ['mtb_5fml_5futils_5fmodel_5fdequantize',['mtb_ml_utils_model_dequantize',['../group__Utils__API.html#gaa578b3b484071af8d181c6b5d33403fa',1,'mtb_ml_utils.h']]],
+  ['mtb_5fml_5futils_5fmodel_5fquantize',['mtb_ml_utils_model_quantize',['../group__Utils__API.html#ga7866c9a14538c1c789a5bfa0058a5e79',1,'mtb_ml_utils.h']]],
   ['mtb_5fml_5futils_5fprint_5fmodel_5finfo',['mtb_ml_utils_print_model_info',['../group__Utils__API.html#ga51ac92aa83247e29a918033e53bddd26',1,'mtb_ml_utils.h']]]
 ];

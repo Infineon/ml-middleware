@@ -80,6 +80,11 @@ static int output_elements(tflm_rmf_apis_t *rmf_api)
     return count;
 }
 
+static MTB_ML_DATA_T * input_ptr(tflm_rmf_apis_t *rmf_api)
+{
+    return (MTB_ML_DATA_T *) rmf_api->model_input_ptr(0);
+}
+
 static MTB_ML_DATA_T * output_ptr(tflm_rmf_apis_t *rmf_api)
 {
     return (MTB_ML_DATA_T *) rmf_api->model_output_ptr(0);
@@ -124,7 +129,10 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
     }
 
     /* Get model parameters */
+    model_object->input = input_ptr(rmf_api);
     model_object->input_size = input_elements(rmf_api);
+    model_object->input_zero_point = rmf_api->model_input(0)->params.zero_point;
+    model_object->input_scale = rmf_api->model_input(0)->params.scale;
     model_object->output_size = output_elements(rmf_api);
     model_object->output = output_ptr(rmf_api);
     model_object->output_zero_point = rmf_api->model_output(0)->params.zero_point;

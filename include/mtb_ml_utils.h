@@ -130,6 +130,20 @@ cy_rslt_t mtb_ml_utils_convert_flt_to_int(const float* in, MTB_ML_DATA_T *out, i
 cy_rslt_t mtb_ml_utils_print_model_info(const mtb_ml_model_t *obj);
 
 /**
+ * \brief : Quantizes float data for model input. This function will always attempt to quantize the provided input data.
+ * In order to properly use this function the end user must give the mtb ml model object, pointer to the input data of
+ * floating point values and a pointer to a input buffer to contain all quantized values.
+ *
+ * \param[in] obj        : Pointer of model object.
+ * \param[in] input_data : Pointer to input floating point data
+ * \param[out] quantized_values : Input buffer to contain all quantized values. Its size should be allocated to match the number of input nodes within the model.
+ *
+ * \return               : MTB_ML_RESULT_SUCCESS - success
+ *                       : MTB_ML_RESULT_BAD_ARG - if an input parameter is invalid.
+ */
+cy_rslt_t mtb_ml_utils_model_quantize(const mtb_ml_model_t *obj, const float* input_data, MTB_ML_DATA_T* quantized_values);
+
+/**
  * \brief : Dequantize model's output if it is quantized
  *
  * \param[in] obj        : Pointer of model object.

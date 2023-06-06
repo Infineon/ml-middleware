@@ -92,6 +92,8 @@ class MTBTFLiteMicro {
   size_t input_elements(int index = 0) { return tflite::ElementCount(*(interpreter_.input(index)->dims)); }
   int    input_dims_len(int index=0) {return interpreter_.input(index)->dims->size; }
   int *  input_dims( int index=0) { return &interpreter_.input(index)->dims->data[0]; }
+  int    input_zero_point( int index=0) { return interpreter_.input(index)->params.zero_point; }
+  float  input_scale( int index=0) { return interpreter_.input(index)->params.scale; }
   int    output_zero_point( int index=0) { return interpreter_.output(index)->params.zero_point; }
   float  output_scale( int index=0) { return interpreter_.output(index)->params.scale; }
 
@@ -204,7 +206,10 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
         goto ret_err;
     }
 
+    model_object->input = TFLMClass->input_ptr();
     model_object->input_size = TFLMClass->input_elements();
+    model_object->input_zero_point = TFLMClass->input_zero_point();
+    model_object->input_scale = TFLMClass->input_scale();
     model_object->output_size = TFLMClass->output_elements();
     model_object->output = TFLMClass->output_ptr();
     model_object->buffer_size = TFLMClass->get_used_arena_size();

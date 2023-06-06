@@ -232,7 +232,7 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
 
     /* Initialize output q-factor - acting as input and output q-factor */
     object->output_q_n = object->input_q_n;
-
+    object->input = input;
     ret = Cy_ML_Model_Inference(object->inference_obj, input, object->output,
 #if COMPONENT_ML_FLOAT32
                                 NULL

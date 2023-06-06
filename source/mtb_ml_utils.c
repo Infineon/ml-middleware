@@ -256,6 +256,89 @@ cy_rslt_t mtb_ml_utils_convert_flt_to_int8(const float* in, int8_t *out, int siz
 }
 
 /**
+ * \brief : This function converts an array of floating-point to a 8-bits fixed-point integer for TFLiteU.
+ *
+ * \param[in]   in          : pointer of input array in floating-point
+ * \param[out]  out         : pointer of output array in 8-bits
+ * \param[in]   size        : size of the array
+ * \param[in]   scale       : scale of output data
+ * \param[in]   zero_point  : zero point of the output data
+ *
+ * \return                  : MTB_ML_RESULT_SUCCESS - success
+ *                          : MTB_ML_RESULT_BAD_ARG - if input paramter is invalid.
+*/
+static cy_rslt_t mtb_ml_utils_convert_tflm_flt_to_int8(const float* in, int8_t *out, int size, float scale, int zero_point)
+{
+    int loop_count;
+    float val;
+
+    /* Sanity check of input parameters */
+    if (in == NULL || out == NULL || size <= 0 || scale <= 0)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+#if defined(MTB_ML_HAVING_CMSIS_DSP)
+    /* Process 4 output at one time */
+    loop_count = size >> 2u;
+    while (loop_count > 0)
+    {
+        val = *in++;
+        val = (val / scale) + zero_point;
+        val += val > 0.0f ? 0.5f : -0.5f;
+        *out++ = (int8_t) (__SSAT((int32_t) (val), 8));
+
+        val = *in++;
+        val = (val / scale) + zero_point;
+        val += val > 0.0f ? 0.5f : -0.5f;
+        *out++ = (int8_t) (__SSAT((int32_t) (val), 8));
+
+        val = *in++;
+        val = (val / scale) + zero_point;
+        val += val > 0.0f ? 0.5f : -0.5f;
+        *out++ = (int8_t) (__SSAT((int32_t) (val), 8));
+
+        val = *in++;
+        val = (val / scale) + zero_point;
+        val += val > 0.0f ? 0.5f : -0.5f;
+        *out++ = (int8_t) (__SSAT((int32_t) (val), 8));
+
+        loop_count--;
+    }
+
+    /* Process any remaining output */
+    loop_count = size % 4;
+
+    while (loop_count > 0)
+    {
+        val = *in++;
+        val = (val / scale) + zero_point;
+        val += val > 0.0f ? 0.5f : -0.5f;
+        *out++ = (int8_t) (__SSAT((int32_t) (val), 8));
+
+        loop_count--;
+    }
+#else
+    loop_count = size;
+    while (loop_count > 0)
+    {
+        val = (*in++ / scale) + zero_point;
+        val += val > 0.0f ? 0.5f : -0.5f;
+        if ((int32_t) val > SCHAR_MAX)
+            *out++ = SCHAR_MAX;
+        else if ((int32_t) val < SCHAR_MIN)
+            *out++ = SCHAR_MIN;
+        else
+            *out++ = (int8_t) (val);
+
+        loop_count--;
+    }
+#endif /* MTB_ML_HAVING_CMSIS_DSP */
+
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+/**
  * \brief : This function converts an array of floating-point to a 16-bits Q-format fixed-point integer.
  *
  * \param[in]   in          : pointer of input array in floating-point
@@ -405,6 +488,37 @@ cy_rslt_t mtb_ml_utils_print_model_info(const mtb_ml_model_t *obj)
     printf("ML Coretool Version\t:\t0x%"PRIx32"\r\n", model_info->ml_coretool_version);
 #endif
     return MTB_ML_RESULT_SUCCESS;
+}
+
+/**
+ * \brief : Quantizes float data for model input. This function will always attempt to quantize the provided input data.
+ * In order to properly use this function the end user must give the mtb ml model object, pointer to the input data of
+ * floating point values and a pointer to a input buffer to contain all quantized values.
+ *
+ * \param[in] obj        : Pointer of model object.
+ * \param[in] input_data : Pointer to input floating point data
+ * \param[out] quantized_values : Input buffer to contain all quantized values. Its size should be allocated to match the number of input nodes within the model.
+ *
+ * \return               : MTB_ML_RESULT_SUCCESS - success
+ *                       : MTB_ML_RESULT_BAD_ARG - if an input parameter is invalid.
+ */
+cy_rslt_t mtb_ml_utils_model_quantize(const mtb_ml_model_t *obj, const float* input_data, MTB_ML_DATA_T* quantized_values)
+{
+    if (obj == NULL || input_data == NULL || quantized_values == NULL) {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+#if !defined(COMPONENT_ML_FLOAT32)
+    int32_t size = obj->input_size;
+    const float *value = input_data;
+#if defined(COMPONENT_ML_IFX)
+    return mtb_ml_utils_convert_flt_to_int(value, quantized_values, size, obj->input_q_n);
+#else
+    return mtb_ml_utils_convert_tflm_flt_to_int8(value, quantized_values, size, obj->input_scale, obj->input_zero_point);
+#endif
+#else
+    return MTB_ML_RESULT_SUCCESS;
+#endif
 }
 
 /**
