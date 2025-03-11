@@ -5,7 +5,7 @@
 * This the header file of ModusToolbox ML middleware utility module
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -39,12 +39,12 @@
 #if !defined(__MTB_ML_UTILS_H__)
 #define __MTB_ML_UTILS_H__
 
+#include "mtb_ml_common.h"
+#include "mtb_ml_model.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
-
-#include "mtb_ml_common.h"
-#include "mtb_ml_model.h"
 
 /******************************************************************************
  * Macros
@@ -92,32 +92,6 @@ int mtb_ml_utils_find_max(const MTB_ML_DATA_T* in, int size);
  *                          : -1 if input paramter is invalid.
  */
 int mtb_ml_utils_find_max_int32(const int32_t* in, int size);
-
-/**
- * \brief : This function converts an array of MTB ML integer to floating-point
- *
- * \param[in]   in          : pointer of input array in Q-format fixed-point
- * \param[out]  out         : pointer of output array in floating-point
- * \param[in]   size        : size of the array
- * \param[in]   q           : fractional bits of Q-format fixed-point
- *
- * \return                  : MTB_ML_RESULT_SUCCESS - success
- *                          : MTB_ML_RESULT_BAD_ARG - if input paramter is invalid.
- */
-cy_rslt_t mtb_ml_utils_convert_int_to_flt(const MTB_ML_DATA_T* in, float *out, int size, int q);
-
-/**
- * \brief : This function converts an array of floating-point to a Q-format fixed-point integer.
- *
- * \param[in]   in          : pointer of input array in floating-point
- * \param[out]  out         : pointer of output array in Q-format fixed-point
- * \param[in]   size        : size of the array
- * \param[in]   q           : fractional bits of Q-format fixed-point
- *
- * \return                  : MTB_ML_RESULT_SUCCESS - success
- *                          : MTB_ML_RESULT_BAD_ARG - if input paramter is invalid.
- */
-cy_rslt_t mtb_ml_utils_convert_flt_to_int(const float* in, MTB_ML_DATA_T *out, int size, int q);
 
 /**
  * \brief : Print detailed model info

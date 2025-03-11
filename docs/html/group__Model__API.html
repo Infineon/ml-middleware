@@ -98,10 +98,10 @@ $(document).ready(function(){initNavTree('group__Model__API.html','');});
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:gaa082f86e4e11c6e1b74211fc24f60589"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#gaa082f86e4e11c6e1b74211fc24f60589">mtb_ml_model_init</a> (const <a class="el" href="structmtb__ml__model__bin__t.html">mtb_ml_model_bin_t</a> *bin, const <a class="el" href="structmtb__ml__model__buffer__t.html">mtb_ml_model_buffer_t</a> *buffer, <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> **object)</td></tr>
-<tr class="memdesc:gaa082f86e4e11c6e1b74211fc24f60589"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Allocate and initialize NN model runtime object based on model data  <a href="#gaa082f86e4e11c6e1b74211fc24f60589">More...</a><br /></td></tr>
+<tr class="memdesc:gaa082f86e4e11c6e1b74211fc24f60589"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Allocate and initialize NN model runtime object based on model data. Only intended to be called once.  <a href="#gaa082f86e4e11c6e1b74211fc24f60589">More...</a><br /></td></tr>
 <tr class="separator:gaa082f86e4e11c6e1b74211fc24f60589"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga10acddae09fd2643123f403384bb7ecc"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga10acddae09fd2643123f403384bb7ecc">mtb_ml_model_deinit</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
-<tr class="memdesc:ga10acddae09fd2643123f403384bb7ecc"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Delete NN model runtime object and free all dynamically allocated memory  <a href="#ga10acddae09fd2643123f403384bb7ecc">More...</a><br /></td></tr>
+<tr class="memdesc:ga10acddae09fd2643123f403384bb7ecc"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Delete NN model runtime object and free all dynamically allocated memory. Only intended to be called once.  <a href="#ga10acddae09fd2643123f403384bb7ecc">More...</a><br /></td></tr>
 <tr class="separator:ga10acddae09fd2643123f403384bb7ecc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab7f6de335b403cb622564368747d9c93"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#gab7f6de335b403cb622564368747d9c93">mtb_ml_model_run</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, MTB_ML_DATA_T *input)</td></tr>
 <tr class="memdesc:gab7f6de335b403cb622564368747d9c93"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Perform NN model inference  <a href="#gab7f6de335b403cb622564368747d9c93">More...</a><br /></td></tr>
@@ -112,30 +112,21 @@ Functions</h2></td></tr>
 <tr class="memitem:ga6bbd085fed18120775b1acce2a47e0e2"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga6bbd085fed18120775b1acce2a47e0e2">mtb_ml_model_get_output</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, MTB_ML_DATA_T **out_pptr, int *size_ptr)</td></tr>
 <tr class="memdesc:ga6bbd085fed18120775b1acce2a47e0e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get NN model output buffer and size  <a href="#ga6bbd085fed18120775b1acce2a47e0e2">More...</a><br /></td></tr>
 <tr class="separator:ga6bbd085fed18120775b1acce2a47e0e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafec82b745a2ac4d8726d145e8c27e382"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#gafec82b745a2ac4d8726d145e8c27e382">mtb_ml_model_get_recurrent_time_series_frames</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
-<tr class="memdesc:gafec82b745a2ac4d8726d145e8c27e382"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get the number of frame in recurrent model time series  <a href="#gafec82b745a2ac4d8726d145e8c27e382">More...</a><br /></td></tr>
-<tr class="separator:gafec82b745a2ac4d8726d145e8c27e382"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gada1fdc438f97d3ab764b2a1dc0b9e113"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#gada1fdc438f97d3ab764b2a1dc0b9e113">mtb_ml_model_rnn_state_control</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, int status, int win_size)</td></tr>
-<tr class="memdesc:gada1fdc438f97d3ab764b2a1dc0b9e113"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Update recurrent NN reset state  <a href="#gada1fdc438f97d3ab764b2a1dc0b9e113">More...</a><br /></td></tr>
-<tr class="separator:gada1fdc438f97d3ab764b2a1dc0b9e113"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e0db44fc0870fe02de8fc2aa2a07334"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga5e0db44fc0870fe02de8fc2aa2a07334">mtb_ml_model_rnn_reset_all_parameters</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
+<tr class="memdesc:ga5e0db44fc0870fe02de8fc2aa2a07334"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Reset model parameters  <a href="#ga5e0db44fc0870fe02de8fc2aa2a07334">More...</a><br /></td></tr>
+<tr class="separator:ga5e0db44fc0870fe02de8fc2aa2a07334"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga72b028986ca9e631b52dd71cc1cc6f2f"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga72b028986ca9e631b52dd71cc1cc6f2f">mtb_ml_model_get_inference_object</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
 <tr class="memdesc:ga72b028986ca9e631b52dd71cc1cc6f2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get MTB ML inference runtime object  <a href="#ga72b028986ca9e631b52dd71cc1cc6f2f">More...</a><br /></td></tr>
 <tr class="separator:ga72b028986ca9e631b52dd71cc1cc6f2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga837fea8bd40a5eddf091eb1b66f6af3e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga837fea8bd40a5eddf091eb1b66f6af3e">mtb_ml_model_profile_get_tsc</a> (uint32_t *val)</td></tr>
-<tr class="memdesc:ga837fea8bd40a5eddf091eb1b66f6af3e"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Read time stamp counter (TSC) .  <a href="#ga837fea8bd40a5eddf091eb1b66f6af3e">More...</a><br /></td></tr>
-<tr class="separator:ga837fea8bd40a5eddf091eb1b66f6af3e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaabecdd51e45cb27c66fcef74690918d2"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#gaabecdd51e45cb27c66fcef74690918d2">mtb_ml_model_profile_get_tsc</a> (uint64_t *val)</td></tr>
+<tr class="memdesc:gaabecdd51e45cb27c66fcef74690918d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Read time stamp counter (TSC) .  <a href="#gaabecdd51e45cb27c66fcef74690918d2">More...</a><br /></td></tr>
+<tr class="separator:gaabecdd51e45cb27c66fcef74690918d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga554f6e3b60450c1914523d6522beecb2"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga554f6e3b60450c1914523d6522beecb2">mtb_ml_model_profile_config</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, mtb_ml_profile_config_t config)</td></tr>
 <tr class="memdesc:ga554f6e3b60450c1914523d6522beecb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Update MTB ML inference profiling setting  <a href="#ga554f6e3b60450c1914523d6522beecb2">More...</a><br /></td></tr>
 <tr class="separator:ga554f6e3b60450c1914523d6522beecb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3e9031281ef07dbc39fddf4a2c11e7be"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga3e9031281ef07dbc39fddf4a2c11e7be">mtb_ml_model_profile_log</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
 <tr class="memdesc:ga3e9031281ef07dbc39fddf4a2c11e7be"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Generate MTB ML profiling log  <a href="#ga3e9031281ef07dbc39fddf4a2c11e7be">More...</a><br /></td></tr>
 <tr class="separator:ga3e9031281ef07dbc39fddf4a2c11e7be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9d6ee956aab441cde9d6860b571d5d50"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga9d6ee956aab441cde9d6860b571d5d50">mtb_ml_model_set_input_q_fraction_bits</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, uint8_t bits)</td></tr>
-<tr class="memdesc:ga9d6ee956aab441cde9d6860b571d5d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Set NN model input data Q-format fraction bits Only apply to IFX inference engine in integer mode  <a href="#ga9d6ee956aab441cde9d6860b571d5d50">More...</a><br /></td></tr>
-<tr class="separator:ga9d6ee956aab441cde9d6860b571d5d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac3cc40b399080e1aeab9069a78ee682c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#gac3cc40b399080e1aeab9069a78ee682c">mtb_ml_model_get_output_q_fraction_bits</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
-<tr class="memdesc:gac3cc40b399080e1aeab9069a78ee682c"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get NN model output data Q-format fraction bits Only apply to IFX inference engine in integer mode  <a href="#gac3cc40b399080e1aeab9069a78ee682c">More...</a><br /></td></tr>
-<tr class="separator:gac3cc40b399080e1aeab9069a78ee682c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function Documentation</h2>
@@ -155,7 +146,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>: Delete NN model runtime object and free all dynamically allocated memory </p>
+<p>: Delete NN model runtime object and free all dynamically allocated memory. Only intended to be called once. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object.</td></tr>
@@ -265,60 +256,6 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gac3cc40b399080e1aeab9069a78ee682c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gac3cc40b399080e1aeab9069a78ee682c">&#9670;&nbsp;</a></span>mtb_ml_model_get_output_q_fraction_bits()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint8_t mtb_ml_model_get_output_q_fraction_bits </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *&#160;</td>
-          <td class="paramname"><em>object</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>: Get NN model output data Q-format fraction bits Only apply to IFX inference engine in integer mode </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>: Q-format fraction bit : 0 - if input parameter is invalid. </dd></dl>
-
-</div>
-</div>
-<a id="gafec82b745a2ac4d8726d145e8c27e382"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gafec82b745a2ac4d8726d145e8c27e382">&#9670;&nbsp;</a></span>mtb_ml_model_get_recurrent_time_series_frames()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">int mtb_ml_model_get_recurrent_time_series_frames </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *&#160;</td>
-          <td class="paramname"><em>object</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>: Get the number of frame in recurrent model time series </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>: &gt;0 - GNU model feature window size : 0 - otherwise </dd></dl>
-
-</div>
-</div>
 <a id="gaa082f86e4e11c6e1b74211fc24f60589"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaa082f86e4e11c6e1b74211fc24f60589">&#9670;&nbsp;</a></span>mtb_ml_model_init()</h2>
 
@@ -351,7 +288,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>: Allocate and initialize NN model runtime object based on model data </p>
+<p>: Allocate and initialize NN model runtime object based on model data. Only intended to be called once. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">bin</td><td>: Pointer of model binary data. </td></tr>
@@ -402,8 +339,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga837fea8bd40a5eddf091eb1b66f6af3e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga837fea8bd40a5eddf091eb1b66f6af3e">&#9670;&nbsp;</a></span>mtb_ml_model_profile_get_tsc()</h2>
+<a id="gaabecdd51e45cb27c66fcef74690918d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaabecdd51e45cb27c66fcef74690918d2">&#9670;&nbsp;</a></span>mtb_ml_model_profile_get_tsc()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -411,7 +348,7 @@ Functions</h2></td></tr>
         <tr>
           <td class="memname">int mtb_ml_model_profile_get_tsc </td>
           <td>(</td>
-          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramtype">uint64_t *&#160;</td>
           <td class="paramname"><em>val</em></td><td>)</td>
           <td></td>
         </tr>
@@ -457,44 +394,26 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="gada1fdc438f97d3ab764b2a1dc0b9e113"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gada1fdc438f97d3ab764b2a1dc0b9e113">&#9670;&nbsp;</a></span>mtb_ml_model_rnn_state_control()</h2>
+<a id="ga5e0db44fc0870fe02de8fc2aa2a07334"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5e0db44fc0870fe02de8fc2aa2a07334">&#9670;&nbsp;</a></span>mtb_ml_model_rnn_reset_all_parameters()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">cy_rslt_t mtb_ml_model_rnn_state_control </td>
+          <td class="memname">cy_rslt_t mtb_ml_model_rnn_reset_all_parameters </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *&#160;</td>
-          <td class="paramname"><em>object</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>object</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>status</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>win_size</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>: Update recurrent NN reset state </p>
+<p>: Reset model parameters </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">status</td><td>: Enable (1) or disable (0) Recurrent NN reset </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">win_size</td><td>: Recurrent NN reset window size</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object.</td></tr>
   </table>
   </dd>
 </dl>
@@ -537,44 +456,6 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid. : MTB_ML_RESULT_INFERENCE_ERROR - if inference failure </dd></dl>
-
-</div>
-</div>
-<a id="ga9d6ee956aab441cde9d6860b571d5d50"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga9d6ee956aab441cde9d6860b571d5d50">&#9670;&nbsp;</a></span>mtb_ml_model_set_input_q_fraction_bits()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">cy_rslt_t mtb_ml_model_set_input_q_fraction_bits </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *&#160;</td>
-          <td class="paramname"><em>object</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t&#160;</td>
-          <td class="paramname"><em>bits</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>: Set NN model input data Q-format fraction bits Only apply to IFX inference engine in integer mode </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object. </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">bits</td><td>: Q-format fraction bits</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid. </dd></dl>
 
 </div>
 </div>

@@ -5,7 +5,7 @@
 * This is the common header file of ModusToolbox ML middleware library.
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -39,32 +39,27 @@
 #if !defined(__MTB_ML_COMMON_H__)
 #define __MTB_ML_COMMON_H__
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include "cy_result.h"
 
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
 /******************************************************************************
  * Version
  *****************************************************************************/
-#define MTB_ML_MIDDLEWARE_VERSION_MAJOR     2
+#define MTB_ML_MIDDLEWARE_VERSION_MAJOR     3
 #define MTB_ML_MIDDLEWARE_VERSION_MINOR     0
-#define MTB_ML_MIDDLEWARE_VERSION_PATCH     1
+#define MTB_ML_MIDDLEWARE_VERSION_PATCH     0
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
-#if defined(COMPONENT_ML_IFX)
-  #if !(defined(COMPONENT_ML_FLOAT32) || defined(COMPONENT_ML_INT16x16) || \
-        defined(COMPONENT_ML_INT16x8) || defined(COMPONENT_ML_INT8x8))
-    #error Invalid data type with IFX inerence engine
-  #endif
-#elif defined(COMPONENT_ML_TFLM_INTERPRETER) || defined(COMPONENT_ML_TFLM_INTERPRETER_LESS)
-  #if !(defined(COMPONENT_ML_FLOAT32) || defined(COMPONENT_ML_INT8x8))
+#if defined(COMPONENT_ML_TFLM) || defined(COMPONENT_ML_TFLM_LESS)
+  #if !(defined(COMPONENT_ML_FLOAT32) || defined(COMPONENT_ML_INT8x8) || defined(COMPONENT_ML_INT16x8))
     #error Invalid data type with Tflite-Micro inference engine
   #endif
 #endif
@@ -156,6 +151,8 @@ typedef enum
 #define MTB_ML_RESULT_INFERENCE_ERROR    CY_RSLT_CREATE(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_MIDDLEWARE_ML, 6)
 #define MTB_ML_RESULT_COMM_ERROR         CY_RSLT_CREATE(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_MIDDLEWARE_ML, 7)
 #define MTB_ML_RESULT_TIMEOUT            CY_RSLT_CREATE(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_MIDDLEWARE_ML, 8)
+#define MTB_ML_RESULT_NPU_INIT_ERROR     CY_RSLT_CREATE(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_MIDDLEWARE_ML, 9)
+#define MTB_ML_RESULT_CYCLE_COUNT_ERROR  CY_RSLT_CREATE(CY_RSLT_TYPE_ERROR, CY_RSLT_MODULE_MIDDLEWARE_ML, 10)
 
 /******************************************************************************
 * Structures

@@ -13,36 +13,50 @@ Support floating-point and fixed-point variants:
 * 32-bit floating-point
 * 16-bit fixed-point input
 * 8-bit fixed-point input
-* 16-bit fixed-point weight
 * 8-bit fixed-point weight
 
 The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 
 ## What Changed?
 
+### v3.1.0
+
+* 16-bit fixed-point input
+* Added LSTM models support
+* Streaming fixes and improvements
+* Minor bugfixes
+
+### v3.0.1
+
+* PSOC6 patch release version
+
 ### v2.0.1
-* Added mtb_ml_utils_model_quantize & mtb_ml_utils_convert_tflm_flt_to_int8 functions
+
+* Added `mtb_ml_utils_model_quantize` & `mtb_ml_utils_convert_tflm_flt_to_int8` functions
+
 ### v2.0.0
+
 * Support for TensorFlow Lite Micro
-#### v1.0.0
+* PSOC6™ as a target platform (Cortex-M4)
+
+### v1.0.0
+
 * Initial release
 
-### Supported Software and Tools
+## Supported Software and Tools
 This version of the was validated for compatibility with the following Software and Tools:
 
 | Software and Tools                        | Version       |
 | :---                                      | :----:        |
-| ML Inference                              | 2.0.0         |
-| ML TFLiteU                                | 2.0.0         |
-| ML Core tools                             | 2.0.0         |
-| GCC Compiler                              | 10.3-2021.07  |
-| ARM Compiler 6                            | 6.16          |
-| IAR Compiler                              | 9.30.1        |
+| ML TFLiteU                                | 3.0.1         |
+| ML Coretools                              | 3.0.0         |
+| GCC Compiler                              | 11.3          |
+| ARM Compiler 6                            | 6.22          |
 | CyBridge                                  | 3.4.0         |
 
-Minimum required ModusToolbox™ Software Environment: v3.0
+Minimum required ModusToolbox™ Software Environment: v3.3
 
-### More information
+## More information
 Use the following links for more information, as needed:
 * [ModusToolbox™ Machine Learning Design Support](https://www.infineon.com/cms/en/design-support/tools/sdk/modustoolbox-software/modustoolbox-machine-learning/)
 * [Cypress Semiconductor, an Infineon Technologies Company](http://www.cypress.com)
@@ -50,4 +64,4 @@ Use the following links for more information, as needed:
 * [ModusToolbox](https://www.cypress.com/products/modustoolbox)
 
 ---
-© 2021-2022, Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.
+© 2021-2025, Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.

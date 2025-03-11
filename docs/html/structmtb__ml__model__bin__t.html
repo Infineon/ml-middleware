@@ -102,18 +102,7 @@ Data Fields</h2></td></tr>
 </div></td></tr>
 <tr class="memitem:a324d329f7e08cf29e6b3f4dd6905dae4"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#a324d329f7e08cf29e6b3f4dd6905dae4">name</a> [MTB_ML_MODEL_NAME_LEN]</td></tr>
 <tr class="separator:a324d329f7e08cf29e6b3f4dd6905dae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">COMPONENT_ML_IFX</div></td></tr>
-<tr><td colspan="2"><div class="groupText"><p>Model pareamters for IFX inference engine. </p>
-</div></td></tr>
-<tr class="memitem:ae826b37fee78623215eac237b87b2a09"><td class="memItemLeft" align="right" valign="top">const unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#ae826b37fee78623215eac237b87b2a09">prms_bin</a></td></tr>
-<tr class="separator:ae826b37fee78623215eac237b87b2a09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a82c2543fba667b4ea42d47913d215e"><td class="memItemLeft" align="right" valign="top">const unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#a4a82c2543fba667b4ea42d47913d215e">prms_size</a></td></tr>
-<tr class="separator:a4a82c2543fba667b4ea42d47913d215e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac97cdb07c8a9e84e0fe42a7d90899e12"><td class="memItemLeft" align="right" valign="top">const unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#ac97cdb07c8a9e84e0fe42a7d90899e12">wts_bin</a></td></tr>
-<tr class="separator:ac97cdb07c8a9e84e0fe42a7d90899e12"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a55b983420412780db75cc55a84dafabe"><td class="memItemLeft" align="right" valign="top">const unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#a55b983420412780db75cc55a84dafabe">wts_size</a></td></tr>
-<tr class="separator:a55b983420412780db75cc55a84dafabe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">COMPONENT_ML_TFLM_INTERPRETER</div></td></tr>
+<tr><td colspan="2"><div class="groupHeader">COMPONENT_ML_TFLM</div></td></tr>
 <tr><td colspan="2"><div class="groupText"><p>Model pareamters for TFLM with interpreter </p>
 </div></td></tr>
 <tr class="memitem:a3a4fda8451495885972dc59fae70cff5"><td class="memItemLeft" align="right" valign="top">const uint8_t *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#a3a4fda8451495885972dc59fae70cff5">model_bin</a></td></tr>
@@ -122,7 +111,7 @@ Data Fields</h2></td></tr>
 <tr class="separator:a6a1f6bec559941ea171bc6182f2ef3fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa677ab125ab809058a22f0fc1e846409"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#aa677ab125ab809058a22f0fc1e846409">arena_size</a></td></tr>
 <tr class="separator:aa677ab125ab809058a22f0fc1e846409"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><div class="groupHeader">COMPONENT_ML_TFLM_INTERPRETER_LESS</div></td></tr>
+<tr><td colspan="2"><div class="groupHeader">COMPONENT_ML_TFLM_LESS</div></td></tr>
 <tr><td colspan="2"><div class="groupText"><p>Model pareamters for TFLM without interpreter </p>
 </div></td></tr>
 <tr class="memitem:af7c28166d5a33d7b9cfae009bd3f02ac"><td class="memItemLeft" align="right" valign="top">tflm_rmf_apis_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__model__bin__t.html#af7c28166d5a33d7b9cfae009bd3f02ac">rmf_bin</a></td></tr>
@@ -191,36 +180,6 @@ Data Fields</h2></td></tr>
 
 </div>
 </div>
-<a id="ae826b37fee78623215eac237b87b2a09"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae826b37fee78623215eac237b87b2a09">&#9670;&nbsp;</a></span>prms_bin</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const unsigned char* prms_bin</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>the pointer of ML model parameters data </p>
-
-</div>
-</div>
-<a id="a4a82c2543fba667b4ea42d47913d215e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a82c2543fba667b4ea42d47913d215e">&#9670;&nbsp;</a></span>prms_size</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const unsigned int prms_size</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>ML model parameters data size in bytes </p>
-
-</div>
-</div>
 <a id="af7c28166d5a33d7b9cfae009bd3f02ac"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af7c28166d5a33d7b9cfae009bd3f02ac">&#9670;&nbsp;</a></span>rmf_bin</h2>
 
@@ -233,36 +192,6 @@ Data Fields</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <p>the data structure of Tflite APIs </p>
-
-</div>
-</div>
-<a id="ac97cdb07c8a9e84e0fe42a7d90899e12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac97cdb07c8a9e84e0fe42a7d90899e12">&#9670;&nbsp;</a></span>wts_bin</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const unsigned char* wts_bin</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>the pointer of ML model weight and bias data </p>
-
-</div>
-</div>
-<a id="a55b983420412780db75cc55a84dafabe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a55b983420412780db75cc55a84dafabe">&#9670;&nbsp;</a></span>wts_size</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const unsigned int wts_size</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>ML model weights data size in bytes </p>
 
 </div>
 </div>

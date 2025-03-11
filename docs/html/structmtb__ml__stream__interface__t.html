@@ -99,41 +99,92 @@ $(document).ready(function(){initNavTree('structmtb__ml__stream__interface__t.ht
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a613a48fd900304afda90439af7424198"><td class="memItemLeft" align="right" valign="top">mtb_ml_stream_bus_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__stream__interface__t.html#a613a48fd900304afda90439af7424198">bus</a></td></tr>
-<tr class="separator:a613a48fd900304afda90439af7424198"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a438ae31b179f2ce1601c798f141d032b"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__stream__interface__t.html#a438ae31b179f2ce1601c798f141d032b">interface_obj</a></td></tr>
-<tr class="separator:a438ae31b179f2ce1601c798f141d032b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11eb3b34362a6780852c0e6e1f237542"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structmtb__data__streaming__interface__t.html">mtb_data_streaming_interface_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__stream__interface__t.html#a11eb3b34362a6780852c0e6e1f237542">interface_obj</a></td></tr>
+<tr class="separator:a11eb3b34362a6780852c0e6e1f237542"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af22b7b6789bfa50e261dc985787b15b7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structmtb__ml__stream__tag__t.html">mtb_ml_stream_tag_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__stream__interface__t.html#af22b7b6789bfa50e261dc985787b15b7">stream_tag</a></td></tr>
+<tr class="separator:af22b7b6789bfa50e261dc985787b15b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a36d2b0a93af71b2885b76a0ae47c9f69"><td class="memItemLeft" align="right" valign="top">mtb_ml_x_file_header_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__stream__interface__t.html#a36d2b0a93af71b2885b76a0ae47c9f69">x_data_info</a></td></tr>
+<tr class="separator:a36d2b0a93af71b2885b76a0ae47c9f69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a11b689df679a3b73d1011103c9b67c82"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__stream__interface__t.html#a11b689df679a3b73d1011103c9b67c82">input_size</a></td></tr>
+<tr class="separator:a11b689df679a3b73d1011103c9b67c82"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a936e314fcab4e7bfe77e6ffde4e15e06"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structmtb__ml__stream__interface__t.html#a936e314fcab4e7bfe77e6ffde4e15e06">output_size</a></td></tr>
+<tr class="separator:a936e314fcab4e7bfe77e6ffde4e15e06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Stream interface metadata </p>
+<div class="textblock"><p>Stream interface </p>
 </div><h2 class="groupheader">Field Documentation</h2>
-<a id="a613a48fd900304afda90439af7424198"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a613a48fd900304afda90439af7424198">&#9670;&nbsp;</a></span>bus</h2>
+<a id="a11b689df679a3b73d1011103c9b67c82"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11b689df679a3b73d1011103c9b67c82">&#9670;&nbsp;</a></span>input_size</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">mtb_ml_stream_bus_t bus</td>
+          <td class="memname">size_t input_size</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Communication port for streaming </p>
+<p>Size of input data buffer, set to model object input size </p>
 
 </div>
 </div>
-<a id="a438ae31b179f2ce1601c798f141d032b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a438ae31b179f2ce1601c798f141d032b">&#9670;&nbsp;</a></span>interface_obj</h2>
+<a id="a11eb3b34362a6780852c0e6e1f237542"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a11eb3b34362a6780852c0e6e1f237542">&#9670;&nbsp;</a></span>interface_obj</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void* interface_obj</td>
+          <td class="memname"><a class="el" href="structmtb__data__streaming__interface__t.html">mtb_data_streaming_interface_t</a>* interface_obj</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Interface HAL object, i.e. from cyhal_uart_init or cy_retarget_io_init </p>
+<p>Stream interface object </p>
+
+</div>
+</div>
+<a id="a936e314fcab4e7bfe77e6ffde4e15e06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a936e314fcab4e7bfe77e6ffde4e15e06">&#9670;&nbsp;</a></span>output_size</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t output_size</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Size of output data buffer, set to model object output size </p>
+
+</div>
+</div>
+<a id="af22b7b6789bfa50e261dc985787b15b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af22b7b6789bfa50e261dc985787b15b7">&#9670;&nbsp;</a></span>stream_tag</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="structmtb__ml__stream__tag__t.html">mtb_ml_stream_tag_t</a>* stream_tag</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Tag that tracks status of stream </p>
+
+</div>
+</div>
+<a id="a36d2b0a93af71b2885b76a0ae47c9f69"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a36d2b0a93af71b2885b76a0ae47c9f69">&#9670;&nbsp;</a></span>x_data_info</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">mtb_ml_x_file_header_t x_data_info</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>x data info retrieved from host </p>
 
 </div>
 </div>

@@ -6,7 +6,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -60,6 +60,7 @@ typedef int *  (*tflm_rmf_output_dims) (int);
 typedef int    (*tflm_rmf_output_dims_len) (int);
 typedef TfLiteStatus (*tflm_rmf_init) (void);
 typedef TfLiteStatus (*tflm_rmf_invoke) (void);
+typedef TfLiteStatus (*tflm_rmf_reset) (void);
 typedef TfLiteTensor* (*tflm_rmf_input) (int);
 typedef TfLiteTensor* (*tflm_rmf_output) (int index);
 
@@ -85,6 +86,7 @@ typedef struct
     tflm_rmf_output_dims_len model_output_dims_len; /**< Pointer to function that returns the output dimention size */
     tflm_rmf_init model_init;                       /**< Pointer to function that initializes the model */
     tflm_rmf_invoke model_invoke;                   /**< Pointer to function that invokes the model */
+    tflm_rmf_reset model_reset;                     /**< Pointer to function that resets variable tensors*/
     int model_data_size;                            /**< model data size */
     int model_buffer_size;                          /**< model runtime buffer size */
 } tflm_rmf_apis_t;
@@ -95,7 +97,9 @@ typedef struct
 /**
  * A type definition for MTB ML Model's input/output data
  */
-#if defined(COMPONENT_ML_INT8x8)
+#if defined(COMPONENT_ML_INT16x8)
+typedef int16_t MTB_ML_DATA_T;
+#elif defined(COMPONENT_ML_INT8x8)
 typedef int8_t MTB_ML_DATA_T;
 #elif defined(COMPONENT_ML_FLOAT32)
 typedef float MTB_ML_DATA_T;
@@ -120,6 +124,7 @@ typedef float MTB_ML_DATA_T;
 #define TFLM_RMF_INPUTS(m)                   TFLM_RMF_CONCAT(m,_inputs)
 #define TFLM_RMF_OUTPUTS(m)                  TFLM_RMF_CONCAT(m,_outputs)
 #define TFLM_RMF_INVOKE(m)                   TFLM_RMF_CONCAT(m,_invoke)
+#define TFLM_RMF_RESET(m)                    TFLM_RMF_CONCAT(m,_reset)
 #define TFLM_RMF_INPUT_PTR(m)                TFLM_RMF_CONCAT(m,_input_ptr)
 #define TFLM_RMF_INPUT_SIZE(m)               TFLM_RMF_CONCAT(m,_input_size)
 #define TFLM_RMF_INPUT_DIMS(m)               TFLM_RMF_CONCAT(m,_input_dims)
@@ -149,6 +154,7 @@ typedef float MTB_ML_DATA_T;
                     .model_output_dims_len = TFLM_RMF_OUTPUT_DIMS_LEN(m), \
                     .model_init            = TFLM_RMF_INIT(m), \
                     .model_invoke          = TFLM_RMF_INVOKE(m), \
+                    .model_reset           = TFLM_RMF_RESET(m), \
                     .model_data_size       = TFLM_RMF_MODEL_CONST_DATA_SIZE(m), \
                     .model_buffer_size     = TFLM_RMF_MODEL_INIT_DATA_SIZE(m) + \
                                              TFLM_RMF_MODEL_UNINIT_DATA_SIZE(m) \
@@ -163,6 +169,10 @@ typedef float MTB_ML_DATA_T;
 #define ML_INCLUDE_MODEL_FILE_IMPL(m)          INCLUDE_FILE(m,_tflm_less_model_int8x8.h)
 #define ML_INCLUDE_MODEL_X_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_x_data_int8x8.h)
 #define ML_INCLUDE_MODEL_Y_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_y_data_int8x8.h)
+#elif defined(COMPONENT_ML_INT16x8)
+#define ML_INCLUDE_MODEL_FILE_IMPL(m)          INCLUDE_FILE(m,_tflm_less_model_int16x8.h)
+#define ML_INCLUDE_MODEL_X_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_x_data_int16x8.h)
+#define ML_INCLUDE_MODEL_Y_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_y_data_int16x8.h)
 #else
   $(error Unsupported data type)
 #endif

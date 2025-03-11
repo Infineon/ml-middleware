@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['s_5fmem',['s_mem',['../structmtb__ml__model__t.html#a02b9b7043b734b76b1f902ca6b5a9812',1,'mtb_ml_model_t']]],
-  ['scratch',['scratch',['../structmtb__ml__model__buffer__t.html#a8a8255a80df4d000286bf1facbbebd46',1,'mtb_ml_model_buffer_t']]],
-  ['stream_5fapi',['Stream_API',['../group__Stream__API.html',1,'']]]
+  ['tensor_5farena',['tensor_arena',['../structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa',1,'mtb_ml_model_buffer_t']]],
+  ['tensor_5farena_5fsize',['tensor_arena_size',['../structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90',1,'mtb_ml_model_buffer_t']]],
+  ['tflm_5fobj',['tflm_obj',['../structmtb__ml__model__t.html#a573f9afd5b34a5e6f528594fbb1973c2',1,'mtb_ml_model_t']]]
 ];

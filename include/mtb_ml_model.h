@@ -5,7 +5,7 @@
 * This is the header file of ModusToolbox ML middleware NN model module.
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -39,11 +39,12 @@
 #if !defined(__MTB_ML_MODEL_H__)
 #define __MTB_ML_MODEL_H__
 
+#include "mtb_ml_common.h"
+#include "mtb_ml_model_defs.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
-#include "mtb_ml_common.h"
-#include "mtb_ml_model_defs.h"
 
 /******************************************************************************
  * Macros
@@ -71,17 +72,6 @@ extern "C" {
  */
 typedef struct
 {
-#if defined(COMPONENT_ML_IFX)
-/** @name COMPONENT_ML_IFX
- *  Buffer parameters for IFX inference engine.
- */
-///@{
-/** Model Buffer parameters for IFX inference engine:  */
-    void *persistent;                   /**< the pointer of ML model persistent buffer */
-    void *scratch;                      /**< the pointer of ML model scratch buffer */
-///@}
-#endif
-#if defined(COMPONENT_ML_TFLM_INTERPRETER) || defined(COMPONENT_ML_TFLM_INTERPRETER_LESS)
 /** @name COMPONENT_ML_TFLM
  *  Buffer pareamters for TFLM.
  */
@@ -90,7 +80,6 @@ typedef struct
     uint8_t* tensor_arena;              /**< the pointer of tensor arena buffer provided by application */
     size_t tensor_arena_size;           /**< the size of ML tensor arena buffer provided by application */
 ///@}
-#endif
 } mtb_ml_model_buffer_t;
 
 /**
@@ -104,19 +93,8 @@ typedef struct
 /**@{*/
     char name[MTB_ML_MODEL_NAME_LEN];   /**< the name of ML model */
 /**@}*/
-#if defined(COMPONENT_ML_IFX)
-/** @name COMPONENT_ML_IFX
- *  Model pareamters for IFX inference engine.
- */
-///@{
-    const unsigned char *prms_bin;      /**< the pointer of ML model parameters data */
-    const unsigned int   prms_size;     /**< ML model parameters data size in bytes */
-    const unsigned char *wts_bin;       /**< the pointer of ML model weight and bias data */
-    const unsigned int   wts_size;      /**< ML model weights data size in bytes */
-///@}
-#endif
-#if defined(COMPONENT_ML_TFLM_INTERPRETER)
-/** @name COMPONENT_ML_TFLM_INTERPRETER
+#if defined(COMPONENT_ML_TFLM)
+/** @name COMPONENT_ML_TFLM
  *  Model pareamters for TFLM with interpreter
  */
 ///@{
@@ -125,8 +103,8 @@ typedef struct
     const int            arena_size;    /**< the size of arena buffer for Tflite model */
 ///@}
 #endif
-#if defined(COMPONENT_ML_TFLM_INTERPRETER_LESS)
-/** @name COMPONENT_ML_TFLM_INTERPRETER_LESS
+#if defined(COMPONENT_ML_TFLM_LESS)
+/** @name COMPONENT_ML_TFLM_LESS
  *  Model pareamters for TFLM without interpreter
  */
 ///@{
@@ -150,50 +128,44 @@ typedef struct
     int input_size;                     /**< array size of input data */
     int output_size;                    /**< array size of output data */
     int lib_error;                      /**< error code from ML inference library */
-    MTB_ML_DATA_T *input;               /**< pointer of the ML inference input buffer */
     MTB_ML_DATA_T *output;              /**< pointer of ML inference output buffer */
-/**@}*/
-#if defined(COMPONENT_ML_IFX)
-/** @name COMPONENT_ML_IFX
- *  Model runtime object fields for IFX inference engine
- */
-/**@{*/
-    void *p_mem;                        /**< pointer of persistent memory */
-    void *s_mem;                        /**< pointer of scratch memory */
-    void *inference_obj;                /**< pointer of ML inference runtime object */
-    int input_q_n;                      /**< Q-format(Qm.n) fraction bit for input data */
-    int output_q_n;                     /**< Q-format(Qm.n) fraction bit for output data */
-    int flags;                          /**< flags for memory allocation */
-    cy_stc_ml_model_info_t model_info;  /**< Interpreted model information */
-/**@}*/
-#endif
-#if defined(COMPONENT_ML_TFLM_INTERPRETER) || defined(COMPONENT_ML_TFLM_INTERPRETER_LESS)
-/** @name COMPONENT_ML_TFLM
- *  Model runtime object fields for TFLM
- */
-/**@{*/
+    MTB_ML_DATA_T *input;               /**< pointer of ML inference input buffer */
     void *tflm_obj;                     /**< pointer of Tflite-micro runtime object */
+    int model_time_steps;               /*< number of model time steps */
+    int recurrent_ts_size;              /**< number of data time steps in NN. 0 if non streaming RNN */
     int input_zero_point;               /**< zero point of input data */
     float input_scale;                  /**< scale of input data*/
     int output_zero_point;              /**< zero point of output data */
     float output_scale;                 /**< scale of output data */
     mtb_ml_profile_config_t profiling;  /**< flags of profiling */
-    uint32_t m_cycles;                  /**< profiling cycles */
+    uint64_t m_cpu_cycles;              /**< CPU profiling cycles */
     uint32_t m_sum_frames;              /**< profiling frames */
-    uint64_t m_sum_cycles;              /**< profiling total cycles */
-    uint32_t m_peak_frame;              /**< profiling peak frame */
-    uint32_t m_peak_cycles;             /**< profiling peak cycles */
+    uint64_t m_cpu_sum_cycles;          /**< CPU profiling total cycles */
+    uint32_t m_cpu_peak_frame;          /**< CPU profiling peak frame */
+    uint64_t m_cpu_peak_cycles;         /**< CPU profiling peak cycles */
+    bool is_rnn_streaming;              /**< Is the model an RNN streaming model */
+/**@}*/
+#if defined(COMPONENT_U55) || \
+    defined(COMPONENT_NNLITE2)
+/** @name COMPONENT_U55
+ *  Model runtime object fields for NPU cycle count
+ */
+/**@{*/
+    uint64_t m_npu_cycles;          /**< NPU profiling cycles */
+    uint64_t m_npu_sum_cycles;      /**< NPU total cycles */
+    uint32_t m_npu_peak_frame;      /**< NPU profiling peak frame */
+    uint64_t m_npu_peak_cycles;     /**< NPU profiling peak cycles */
 /**@}*/
 #endif
-#if defined(COMPONENT_ML_TFLM_INTERPRETER)
-/** @name COMPONENT_ML_TFLM_INTERPRETER
+#if defined(COMPONENT_ML_TFLM)
+/** @name COMPONENT_ML_TFLM
  *  Model runtime object fields for TFLM with interpreter
  */
 /**@{*/
     uint8_t *arena_buffer;              /**< pointer of allocated tensor arena buffer */
 #endif
-#if defined(COMPONENT_ML_TFLM_INTERPRETER_LESS)
-/** @name COMPONENT_ML_TFLM_INTERPRETER_LESS
+#if defined(COMPONENT_ML_TFLM_LESS)
+/** @name COMPONENT_ML_TFLM_LESS
  *  Model runtime object fields for TFLM without interpreter
  */
 /**@{*/
@@ -211,7 +183,7 @@ typedef struct
  */
 
 /**
- * \brief : Allocate and initialize NN model runtime object based on model data
+ * \brief : Allocate and initialize NN model runtime object based on model data. Only intended to be called once.
  *
  * \param[in]   bin      : Pointer of model binary data.
  * \param[in]   buffer   : Pointer of buffer data structure for statically allocated persistent and scratch buffer.
@@ -226,9 +198,8 @@ typedef struct
  */
 cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_buffer_t *buffer, mtb_ml_model_t **object);
 
-
 /**
- * \brief : Delete NN model runtime object and free all dynamically allocated memory
+ * \brief : Delete NN model runtime object and free all dynamically allocated memory. Only intended to be called once.
  *
  * \param[in] object     : Pointer of model object.
  *
@@ -248,7 +219,6 @@ cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object);
  *                       : MTB_ML_RESULT_INFERENCE_ERROR - if inference failure
  */
 cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input);
-
 
 /**
  * \brief : Get NN model input data size
@@ -273,26 +243,14 @@ int mtb_ml_model_get_input_size(const mtb_ml_model_t *object);
 cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **out_pptr, int* size_ptr);
 
 /**
- * \brief : Get the number of frame in recurrent model time series
+ * \brief : Reset model parameters
  *
  * \param[in] object     : Pointer of model object.
- *
- * \return               : >0 - GNU model feature window size
- *                       : 0 - otherwise
- */
-int mtb_ml_model_get_recurrent_time_series_frames(const mtb_ml_model_t *object);
-
-/**
- * \brief : Update recurrent NN reset state
- *
- * \param[in] object     : Pointer of model object.
- * \param[in] status     : Enable (1) or disable (0) Recurrent NN reset
- * \param[in] win_size   : Recurrent NN reset window size
  *
  * \return               : MTB_ML_RESULT_SUCCESS - success
  *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
  */
-cy_rslt_t mtb_ml_model_rnn_state_control(mtb_ml_model_t *object, int status, int win_size);
+cy_rslt_t mtb_ml_model_rnn_reset_all_parameters(mtb_ml_model_t *object);
 
 /**
  * \brief : Get MTB ML inference runtime object
@@ -314,7 +272,7 @@ void* mtb_ml_model_get_inference_object(const mtb_ml_model_t *object);
  *
  * \return                  : Return 0 when success, otherwise return error code
  */
-int mtb_ml_model_profile_get_tsc(uint32_t *val);
+int mtb_ml_model_profile_get_tsc(uint64_t *val);
 
 /**
  * \brief : Update MTB ML inference profiling setting
@@ -336,29 +294,6 @@ cy_rslt_t mtb_ml_model_profile_config(mtb_ml_model_t *object, mtb_ml_profile_con
  *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
  */
 cy_rslt_t mtb_ml_model_profile_log(mtb_ml_model_t *object);
-
-/**
- * \brief : Set NN model input data Q-format fraction bits
- *          Only apply to IFX inference engine in integer mode
- *
- * \param[in] object     : Pointer of model object.
- * \param[in] bits       : Q-format fraction bits
- *
- * \return               : MTB_ML_RESULT_SUCCESS - success
- *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
- */
-cy_rslt_t mtb_ml_model_set_input_q_fraction_bits(mtb_ml_model_t *object, uint8_t bits);
-
-/**
- * \brief : Get NN model output data Q-format fraction bits
- *          Only apply to IFX inference engine in integer mode
- *
- * \param[in] object     : Pointer of model object.
- *
- * \return               : Q-format fraction bit
- *                       : 0 - if input parameter is invalid.
- */
-uint8_t mtb_ml_model_get_output_q_fraction_bits(const mtb_ml_model_t *object);
 
 /**
  * @} end of Model_API group

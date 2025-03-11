@@ -97,62 +97,41 @@ $(document).ready(function(){initNavTree('group__Stream__API.html','');});
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga2d304a84d1ae33b7c19430e309cdfc82"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#ga2d304a84d1ae33b7c19430e309cdfc82">mtb_ml_stream_init</a> (const <a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *interface, mtb_ml_profile_config_t profile_cfg, const <a class="el" href="structmtb__ml__model__bin__t.html">mtb_ml_model_bin_t</a> *model_bin)</td></tr>
-<tr class="memdesc:ga2d304a84d1ae33b7c19430e309cdfc82"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Prepare for data streaming: initialize selected NN model, initialize module's variables, allocate communication and ML buffers, setup profiling.  <a href="#ga2d304a84d1ae33b7c19430e309cdfc82">More...</a><br /></td></tr>
-<tr class="separator:ga2d304a84d1ae33b7c19430e309cdfc82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga94ae68c3cf1c67ec80aeabc71bd9e293"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#ga94ae68c3cf1c67ec80aeabc71bd9e293">mtb_ml_stream_task</a> (void)</td></tr>
-<tr class="memdesc:ga94ae68c3cf1c67ec80aeabc71bd9e293"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Model validation using data streaming. This function receives data and performs frame-by-frame inference with the NN model, then uploads inference output back to the host for validation.  <a href="#ga94ae68c3cf1c67ec80aeabc71bd9e293">More...</a><br /></td></tr>
-<tr class="separator:ga94ae68c3cf1c67ec80aeabc71bd9e293"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad29b68c9c8a122d1458a8c5bc5b5f6d9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#gad29b68c9c8a122d1458a8c5bc5b5f6d9">mtb_ml_stream_deinit</a> (void)</td></tr>
-<tr class="memdesc:gad29b68c9c8a122d1458a8c5bc5b5f6d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">: De-initialize the stream module: deinit the model, release buffers.  <a href="#gad29b68c9c8a122d1458a8c5bc5b5f6d9">More...</a><br /></td></tr>
-<tr class="separator:gad29b68c9c8a122d1458a8c5bc5b5f6d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9a798608745c0a4111d91444ba6fe49b"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#ga9a798608745c0a4111d91444ba6fe49b">mtb_ml_stream_init</a> (<a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *interface, const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *model_object)</td></tr>
+<tr class="memdesc:ga9a798608745c0a4111d91444ba6fe49b"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Prepare for data streaming: initialize members of interface, validate input test data matches dimensions of model object.  <a href="#ga9a798608745c0a4111d91444ba6fe49b">More...</a><br /></td></tr>
+<tr class="separator:ga9a798608745c0a4111d91444ba6fe49b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga47adfccf277b4cbb3b95e3efcb0dbf8e"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#ga47adfccf277b4cbb3b95e3efcb0dbf8e">mtb_ml_stream_output_data</a> (<a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *interface, void *tx_buf, uint32_t timeout_ms)</td></tr>
+<tr class="memdesc:ga47adfccf277b4cbb3b95e3efcb0dbf8e"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Streams output test data via interface.  <a href="#ga47adfccf277b4cbb3b95e3efcb0dbf8e">More...</a><br /></td></tr>
+<tr class="separator:ga47adfccf277b4cbb3b95e3efcb0dbf8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3ea27d94f63bfaf8e232ac28f798dc83"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#ga3ea27d94f63bfaf8e232ac28f798dc83">mtb_ml_stream_input_data</a> (<a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *interface, void *rx_buf, uint32_t timeout_ms)</td></tr>
+<tr class="memdesc:ga3ea27d94f63bfaf8e232ac28f798dc83"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Streams input test data via interface.  <a href="#ga3ea27d94f63bfaf8e232ac28f798dc83">More...</a><br /></td></tr>
+<tr class="separator:ga3ea27d94f63bfaf8e232ac28f798dc83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga591529a7e82615b7c85047b06ddc127e"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#ga591529a7e82615b7c85047b06ddc127e">mtb_ml_inform_host_done</a> (<a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *interface, uint32_t timeout_ms)</td></tr>
+<tr class="memdesc:ga591529a7e82615b7c85047b06ddc127e"><td class="mdescLeft">&#160;</td><td class="mdescRight">: API to inform host application when the device task is complete  <a href="#ga591529a7e82615b7c85047b06ddc127e">More...</a><br /></td></tr>
+<tr class="separator:ga591529a7e82615b7c85047b06ddc127e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab3ef7a87dc8e589f424c4cf052eeb8ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Stream__API.html#gab3ef7a87dc8e589f424c4cf052eeb8ec">mtb_ml_stream_cb</a> (void *tag, cy_rslt_t rslt)</td></tr>
+<tr class="memdesc:gab3ef7a87dc8e589f424c4cf052eeb8ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">: TX/RX callback function.  <a href="#gab3ef7a87dc8e589f424c4cf052eeb8ec">More...</a><br /></td></tr>
+<tr class="separator:gab3ef7a87dc8e589f424c4cf052eeb8ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <h2 class="groupheader">Function Documentation</h2>
-<a id="gad29b68c9c8a122d1458a8c5bc5b5f6d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gad29b68c9c8a122d1458a8c5bc5b5f6d9">&#9670;&nbsp;</a></span>mtb_ml_stream_deinit()</h2>
+<a id="ga591529a7e82615b7c85047b06ddc127e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga591529a7e82615b7c85047b06ddc127e">&#9670;&nbsp;</a></span>mtb_ml_inform_host_done()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void mtb_ml_stream_deinit </td>
+          <td class="memname">cy_rslt_t mtb_ml_inform_host_done </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>: De-initialize the stream module: deinit the model, release buffers. </p>
-<dl class="section return"><dt>Returns</dt><dd>: None </dd></dl>
-
-</div>
-</div>
-<a id="ga2d304a84d1ae33b7c19430e309cdfc82"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga2d304a84d1ae33b7c19430e309cdfc82">&#9670;&nbsp;</a></span>mtb_ml_stream_init()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">cy_rslt_t mtb_ml_stream_init </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *&#160;</td>
+          <td class="paramtype"><a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *&#160;</td>
           <td class="paramname"><em>interface</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">mtb_ml_profile_config_t&#160;</td>
-          <td class="paramname"><em>profile_cfg</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structmtb__ml__model__bin__t.html">mtb_ml_model_bin_t</a> *&#160;</td>
-          <td class="paramname"><em>model_bin</em>&#160;</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>timeout_ms</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -162,12 +141,11 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>: Prepare for data streaming: initialize selected NN model, initialize module's variables, allocate communication and ML buffers, setup profiling. </p>
+<p>: API to inform host application when the device task is complete </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">interface</td><td>: Stream interface metadata </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">profile_cfg</td><td>: Profile configuration </td></tr>
-    <tr><td class="paramdir">[in]</td><td class="paramname">model_bin</td><td>: Model binary data</td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">interface</td><td>: Stream interface provided by user. Used to stream input data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>: Timeout in milliseconds. Value of 0 means attempt to receive data forever. </td></tr>
   </table>
   </dd>
 </dl>
@@ -175,23 +153,168 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="ga94ae68c3cf1c67ec80aeabc71bd9e293"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ga94ae68c3cf1c67ec80aeabc71bd9e293">&#9670;&nbsp;</a></span>mtb_ml_stream_task()</h2>
+<a id="gab3ef7a87dc8e589f424c4cf052eeb8ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gab3ef7a87dc8e589f424c4cf052eeb8ec">&#9670;&nbsp;</a></span>mtb_ml_stream_cb()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">cy_rslt_t mtb_ml_stream_task </td>
+          <td class="memname">void mtb_ml_stream_cb </td>
           <td>(</td>
-          <td class="paramtype">void&#160;</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>tag</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">cy_rslt_t&#160;</td>
+          <td class="paramname"><em>rslt</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>: Model validation using data streaming. This function receives data and performs frame-by-frame inference with the NN model, then uploads inference output back to the host for validation. </p>
+<p>: TX/RX callback function. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">tag</td><td>: Used to store arbitrary caller information. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">rslt</td><td>: Result of TX/RX parent callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>: None </dd></dl>
+
+</div>
+</div>
+<a id="ga9a798608745c0a4111d91444ba6fe49b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga9a798608745c0a4111d91444ba6fe49b">&#9670;&nbsp;</a></span>mtb_ml_stream_init()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">cy_rslt_t mtb_ml_stream_init </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *&#160;</td>
+          <td class="paramname"><em>interface</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *&#160;</td>
+          <td class="paramname"><em>model_object</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>: Prepare for data streaming: initialize members of interface, validate input test data matches dimensions of model object. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">interface</td><td>: Stream interface provided by user. interface_obj, rx_tag, and tx_tag must be allocated by user. input_size and output_size will be set by call. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">model_object</td><td>: Model object associated with interface. Parsed to verify input test data and initialize interface. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : otherwise - check the return value for detail. </dd></dl>
+
+</div>
+</div>
+<a id="ga3ea27d94f63bfaf8e232ac28f798dc83"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga3ea27d94f63bfaf8e232ac28f798dc83">&#9670;&nbsp;</a></span>mtb_ml_stream_input_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">cy_rslt_t mtb_ml_stream_input_data </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *&#160;</td>
+          <td class="paramname"><em>interface</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>rx_buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>timeout_ms</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>: Streams input test data via interface. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">interface</td><td>: Stream interface provided by user. Used to stream input data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">rx_buf</td><td>: Receive buffer. Assumed to be of size interface-&gt;input_size. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>: Timeout in milliseconds. Value of 0 means attempt to receive data forever. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : otherwise - check the return value for detail. </dd></dl>
+
+</div>
+</div>
+<a id="ga47adfccf277b4cbb3b95e3efcb0dbf8e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga47adfccf277b4cbb3b95e3efcb0dbf8e">&#9670;&nbsp;</a></span>mtb_ml_stream_output_data()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">cy_rslt_t mtb_ml_stream_output_data </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structmtb__ml__stream__interface__t.html">mtb_ml_stream_interface_t</a> *&#160;</td>
+          <td class="paramname"><em>interface</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>tx_buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>timeout_ms</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>: Streams output test data via interface. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">interface</td><td>: Stream interface provided by user. Used to stream output data. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">tx_buf</td><td>: Transmit buffer. Assumed to be of size interface-&gt;output_size. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">timeout_ms</td><td>: Timeout in milliseconds. Value of 0 means attempt to transmit data forever. </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : otherwise - check the return value for detail. </dd></dl>
 
 </div>

@@ -1,6 +1,8 @@
 var group__Stream__API =
 [
-    [ "mtb_ml_stream_deinit", "group__Stream__API.html#gad29b68c9c8a122d1458a8c5bc5b5f6d9", null ],
-    [ "mtb_ml_stream_init", "group__Stream__API.html#ga2d304a84d1ae33b7c19430e309cdfc82", null ],
-    [ "mtb_ml_stream_task", "group__Stream__API.html#ga94ae68c3cf1c67ec80aeabc71bd9e293", null ]
+    [ "mtb_ml_inform_host_done", "group__Stream__API.html#ga591529a7e82615b7c85047b06ddc127e", null ],
+    [ "mtb_ml_stream_cb", "group__Stream__API.html#gab3ef7a87dc8e589f424c4cf052eeb8ec", null ],
+    [ "mtb_ml_stream_init", "group__Stream__API.html#ga9a798608745c0a4111d91444ba6fe49b", null ],
+    [ "mtb_ml_stream_input_data", "group__Stream__API.html#ga3ea27d94f63bfaf8e232ac28f798dc83", null ],
+    [ "mtb_ml_stream_output_data", "group__Stream__API.html#ga47adfccf277b4cbb3b95e3efcb0dbf8e", null ]
 ];

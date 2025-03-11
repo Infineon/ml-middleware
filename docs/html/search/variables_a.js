@@ -1,5 +1,7 @@
 var searchData=
 [
-  ['s_5fmem',['s_mem',['../structmtb__ml__model__t.html#a02b9b7043b734b76b1f902ca6b5a9812',1,'mtb_ml_model_t']]],
-  ['scratch',['scratch',['../structmtb__ml__model__buffer__t.html#a8a8255a80df4d000286bf1facbbebd46',1,'mtb_ml_model_buffer_t']]]
+  ['send',['send',['../structmtb__data__streaming__interface__t.html#ad4efc5acd001af521ede7388652469d3',1,'mtb_data_streaming_interface_t']]],
+  ['stream_5fdone',['stream_done',['../structmtb__ml__stream__tag__t.html#a57b693cb3ba2b0a52c21d7f5e5fdd9bb',1,'mtb_ml_stream_tag_t']]],
+  ['stream_5fstatus',['stream_status',['../structmtb__ml__stream__tag__t.html#a96cb4e02e3dd9bee010b3d7c9c544d5b',1,'mtb_ml_stream_tag_t']]],
+  ['stream_5ftag',['stream_tag',['../structmtb__ml__stream__interface__t.html#af22b7b6789bfa50e261dc985787b15b7',1,'mtb_ml_stream_interface_t']]]
 ];

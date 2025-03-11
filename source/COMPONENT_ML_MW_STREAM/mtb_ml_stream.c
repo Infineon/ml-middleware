@@ -5,7 +5,7 @@
 * This file contains interface for ML validation data streaming feature
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -37,481 +37,465 @@
 * indemnity Cypress against all liability.
 *******************************************************************************/
 #include <stdio.h>
-#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
 
-#include "cy_pdl.h"
-#include "cyhal.h"
-#include "cybsp.h"
 #include "cy_retarget_io.h"
 
 #include "mtb_ml_common.h"
 #include "mtb_ml_utils.h"
 #include "mtb_ml_stream.h"
-#include "mtb_ml_stream_impl.h"
-
 #include "mtb_ml_model.h"
 
-typedef struct
-{
-    mtb_ml_model_t *model_object;           /* Pointer of model object */
-    void *interface;                        /* Communication interface object */
-    MTB_ML_DATA_T* out;                     /* Model output buffer */
-    uint8_t *rx_buff;                       /* Receive buffer for frame data */
-    const mtb_ml_model_bin_t *model_bin;    /* Model binary structure */
-} mtb_ml_stream_t;
-
-static cy_ml_dataset_header_t dataset_info = {
-    .data_type = MTB_ML_X_DATA_UNKNOWN,
-    .n_ex = 0,
-    .in_sz = 0,
-    .q_fixed = 0,
-    .input_size = 0,
-    .output_size = 0,
-    .baud_rate = 0
-};
-static cyhal_uart_t *uartobj;
-
-mtb_ml_stream_t stream_obj;
-
+/*******************************************************************************
+ * Macros
+*******************************************************************************/
 #define DEFAULT_TX_TIMEOUT 1000
 #define DEFAULT_RX_TIMEOUT 5000
-#define ML_START_TIMEOUT   10000
 
-/**
- * Send binary data via UART interface
- */
-static cy_rslt_t uart_send_data(char* tx_buff, size_t tx_length)
-{
-    size_t requested_tx = tx_length;
-    cy_rslt_t uart_ret;
-    size_t bytes_sent = 0;
-    char *buff = tx_buff;
-    uint32_t timeout = DEFAULT_TX_TIMEOUT;
-
-    while(bytes_sent < requested_tx)
-    {
-        /* Wait until UART TX buffer has some space */
-        while(cyhal_uart_writable(uartobj) < 32)
-        {
-            Cy_SysLib_Delay(1);
-            if(--timeout == 0)
-            {
-                printf("ERROR: timeout waiting for TX buffer\r\n");
-                return MTB_ML_RESULT_TIMEOUT;
-            }
-        }
-
-        uart_ret = cyhal_uart_write(uartobj, buff, &tx_length);
-        if (uart_ret != CY_RSLT_SUCCESS)
-        {
-            printf("ERROR: UART write error\n");
-            return MTB_ML_RESULT_COMM_ERROR;
-        }
-        bytes_sent += tx_length;
-        buff = buff + (char)tx_length;
-        tx_length = requested_tx - bytes_sent;
-    }
-
-    if(bytes_sent != requested_tx)
-    {
-        printf("ERROR: string length mismatch tx_length: %d, expected: %d\n",
-                bytes_sent, requested_tx);
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
-    return MTB_ML_RESULT_SUCCESS;
-}
-
-/**
- * Receive binary data via UART interface
- */
-static cy_rslt_t uart_get_data(void *rx_buff, size_t length, int timeout)
-{
-    size_t rx_counter = 0;
-    cy_rslt_t uart_ret;
-    size_t rx_length = length;
-    uint8_t *rx_pointer = (uint8_t *)rx_buff;
-
-    while(rx_counter < length)
-    {
-        rx_length = length - rx_counter;
-        uart_ret = cyhal_uart_read(uartobj, rx_pointer, &rx_length);
-        if (uart_ret != CY_RSLT_SUCCESS)
-        {
-            printf("ERROR: UART read error\n");
-            return MTB_ML_RESULT_COMM_ERROR;
-        }
-        if(rx_length == 0)
-        {
-            if(--timeout == 0)
-            {
-                printf("ERROR: timeout receiving data, received %d of %d bytes\r\n",
-                       rx_counter, length);
-                return MTB_ML_RESULT_TIMEOUT;
-            }
-            Cy_SysLib_Delay(1);
-        }
-        rx_counter += rx_length;
-        rx_pointer += rx_length;
-    }
-
-    return MTB_ML_RESULT_SUCCESS;
-}
-
-/**
- * Wait for a string in UART data
- */
-static cy_rslt_t uart_wait_for_string(const char *string, size_t size, uint32_t timeout)
-{
-    cy_rslt_t result = MTB_ML_RESULT_SUCCESS;
-    uint8_t uart_rx_data;
-    uint32_t position = 0;
-    while(true)
-    {
-        result = cyhal_uart_getc(uartobj, &uart_rx_data, timeout);
-        if (result == CY_RSLT_SUCCESS)
-        {
-            if(uart_rx_data == string[position])
-            {
-                if((position + 1) == size)
-                {
-                    /* found the string */
-                    result = MTB_ML_RESULT_SUCCESS;
-                    break;
-                }
-                position++;
-            }
-            else
-            {
-                /* this is not the sequence, start over */
-                position = 0;
-            }
-        }
-        else
-        {
-            result = MTB_ML_RESULT_COMM_ERROR;
-            break;
-        }
-    }
-    return result;
-}
-
-/**
- * Establish connection with the host for data streaming
- */
-static cy_rslt_t mtb_ml_stream_handshake(void)
-{
-    cy_rslt_t result;
-    cy_ml_regression_info_t model_regr_info;
-
-    /* Wait for the start string from the host (ML_START) */
-    printf("Waiting for the data stream to begin...\n");
-    result = uart_wait_for_string(ML_TC_START_STRING,
-                                  sizeof(ML_TC_START_STRING), ML_START_TIMEOUT);
-    if(result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("Didn't receive %s from host within %d seconds\n", ML_TC_START_STRING,
-                ML_START_TIMEOUT/1000);
-        return MTB_ML_RESULT_TIMEOUT;
-    }
-
-    /* Print the model info */
-    mtb_ml_utils_print_model_info(stream_obj.model_object);
-
-    /* Indicate the host that we are ready (ML_READY) */
-    result = uart_send_data(ML_CT_READY_STRING, sizeof(ML_CT_READY_STRING));
-    if (result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failed to send %s to host\n", ML_CT_READY_STRING);
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
-
-    /* Wait for the model info from the host */
-    result = uart_wait_for_string(ML_TC_MODEL_DATA_REQ_STRING,
-                                  sizeof(ML_TC_MODEL_DATA_REQ_STRING), DEFAULT_RX_TIMEOUT);
-    if(result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failed to receive %s from host\n", ML_TC_MODEL_DATA_REQ_STRING);
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
-
-    /* Send model info header */
-    result = uart_send_data(ML_CT_MODEL_DATA_STRING, sizeof(ML_CT_MODEL_DATA_STRING));
-    if (result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failed to send %s to host\n", ML_CT_MODEL_DATA_STRING);
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
-
-    /* send model info */
-    model_regr_info.model_size = stream_obj.model_object->model_size;
-    model_regr_info.output_size = stream_obj.model_object->output_size;
-    model_regr_info.buffer_size = stream_obj.model_object->buffer_size;
-    model_regr_info.engine_type = ENG_TFLM;
-    model_regr_info.recurrent_ts_size = 0;
-#if defined(COMPONENT_ML_IFX)
-    model_regr_info.engine_type = ENG_IFX;
-    cy_stc_ml_model_info_t *model_info = &stream_obj.model_object->model_info;
-    model_regr_info.recurrent_ts_size = model_info->recurrent_ts_size;
-#else
-    // output_scale and output_zero_point are only available for TFLM
-    model_regr_info.output_zero_point = stream_obj.model_object->output_zero_point;
-    model_regr_info.output_scale = stream_obj.model_object->output_scale;
+#ifndef ML_START_TIMEOUT
+#define ML_START_TIMEOUT   45000
 #endif
-    result = uart_send_data((char *)&model_regr_info, sizeof(model_regr_info));
-    if (result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failed to send model info to host\n");
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
+/* Set the default buffer to 25. This is only used when HOST is requesting data to be sent.
+ * ML_READY, ML_START etc. will never exceed 10 characters.
+ */
+#define DEFAULT_RX_BUFFER  25
 
-    /* receive datasets info */
-    result = uart_wait_for_string(ML_TC_DATASET_REQ_SEND_STRING,
-                               sizeof(ML_TC_DATASET_REQ_SEND_STRING), DEFAULT_RX_TIMEOUT);
-    if(result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failed to receive %s from the host\n", ML_TC_DATASET_REQ_SEND_STRING);
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
+/* NOTE: Must match mtb_ml_regression_info_t in streaming application */
+#define ML_PROFILE_FRAME_STRING         "Frame "
+#define ML_PROFILE_OUTPUT_STRING        " output:"
+#define ML_PROFILE_INFO_STRING          "PROFILE_INFO,"
 
-    result = uart_send_data(ML_CT_READY_STRING, sizeof(ML_CT_READY_STRING));
-    if (result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failed to send %s to the host\n", ML_CT_READY_STRING);
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
+#define ML_TC_START_STRING              "ML_START"
+#define ML_CT_READY_STRING              "ML_READY"
+#define ML_TC_MODEL_DATA_REQ_STRING     "ML_MODEL_DATA_REQ"
+#define ML_CT_MODEL_DATA_STRING         "ML_MODEL_DATA"
+#define ML_TC_DATASET_REQ_SEND_STRING   "ML_DATASET_SENDREQ"
+#define ML_CT_FRAME_REQ_STRING          "ML_FRAME"
+#define ML_CT_RESULT_STRING             "ML_RESULT"
+#define ML_TC_DONE_STRING               "ML_COMPLETED"
+#define ML_CT_DONE_STRING               "ML_DONE"
+#define ML_ERROR_STRING                 "ERROR"
 
-    result = uart_get_data(&dataset_info, sizeof(dataset_info), DEFAULT_RX_TIMEOUT);
-    if (result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failure receiving dataset header\n");
-        return MTB_ML_RESULT_COMM_ERROR;
-    }
+/*******************************************************************************
+ * Private Function Prototypes
+*******************************************************************************/
+static inline cy_rslt_t mtb_data_streaming_receive(mtb_data_streaming_interface_t* iface,
+                                                   uint8_t* data, size_t count, void* tag);
+static inline cy_rslt_t mtb_data_streaming_send(mtb_data_streaming_interface_t* iface,
+                                                uint8_t *data, size_t count, void* tag);
 
-    return MTB_ML_RESULT_SUCCESS;
+static cy_rslt_t stream_verify_test_data(mtb_ml_stream_interface_t *iface,
+                                         const mtb_ml_model_t *model_object);
+static cy_rslt_t send_model_regr_info   (mtb_ml_stream_interface_t *iface,
+                                         const mtb_ml_model_t *model_object);
+static cy_rslt_t stream_send_data   (mtb_ml_stream_interface_t *iface,
+                                    void* tx_buf,
+                                    size_t tx_length,
+                                    uint32_t timeout_ms);
+static cy_rslt_t stream_get_data    (mtb_ml_stream_interface_t *iface,
+                                    void* rx_buf,
+                                    size_t rx_length,
+                                    uint32_t timeout_ms);
+static cy_rslt_t stream_get_string  (mtb_ml_stream_interface_t *iface,
+                                    const char *string,
+                                    size_t size,
+                                    uint32_t timeout_ms);
+static cy_rslt_t stream_setup       (mtb_data_streaming_interface_t* iface);
+static cy_rslt_t stream_uart_send   (mtb_data_streaming_vcontext_t* vcontext,
+                                    void* data,
+                                    size_t count,
+                                    void* tag);
+static cy_rslt_t stream_uart_get    (mtb_data_streaming_vcontext_t* vcontext,
+                                    uint8_t* data,
+                                    size_t count,
+                                    void* tag);
+
+#if !defined(COMPONENT_MTB_HAL)
+extern cyhal_uart_t cy_retarget_io_uart_obj;
+#endif
+/*******************************************************************************
+ * Private Typedef's/Enumerations
+*******************************************************************************/
+/* NOTE: Must match mtb_ml_regression_info_t in streaming application */
+typedef struct
+{
+    uint32_t output_size;       /* NN model inference classification output size */
+    uint32_t buffer_size;       /* Runtime buffer size required for inference */
+    uint32_t model_size;        /* Model's weights & biases */
+    uint32_t model_time_steps;  /* Number of model time steps */
+    int output_zero_point;      /* Model's output data zero point */
+    float output_scale;         /* Model's output data */
+} mtb_ml_regression_info_t;
+
+/*******************************************************************************
+ * Public Functions
+*******************************************************************************/
+void mtb_ml_stream_cb(void* tag, cy_rslt_t rslt)
+{
+    /* Currently unused */
+    (void)tag;
+    (void)rslt;
 }
 
-/**
- * Perform data streaming
- */
-cy_rslt_t mtb_ml_stream_task()
+cy_rslt_t mtb_ml_stream_init(mtb_ml_stream_interface_t *interface,
+                            const mtb_ml_model_t *model_object)
 {
-    cy_rslt_t result = MTB_ML_RESULT_SUCCESS;
-
-    mtb_ml_model_t *model_object = stream_obj.model_object;
-
-    void *in_buffer = NULL;
-
-    int n_ex, in_sz, ts_cnt=0;
-    size_t data_size = 0;
-
-    result = mtb_ml_stream_handshake();
-    if(result != MTB_ML_RESULT_SUCCESS)
-    {
-        return result;
-    }
-
-    n_ex = dataset_info.n_ex;
-    in_sz = dataset_info.in_sz;
-    data_size = dataset_info.input_size;
-    printf("\r\nReceived: num frames:%d frame size:%d in_size: %d out_size: %d ",
-           n_ex, in_sz, dataset_info.input_size, dataset_info.output_size);
-#if !COMPONENT_ML_FLOAT32
-    printf("in_q_fixed:%d\r\n",dataset_info.q_fixed);
-#else
-    printf("\r\n");
-#endif
-
-    if (in_sz != model_object->input_size)
-    {
-        printf("ERROR: input buffer size error, input size=%d, model input size=%d, aborting... \r\n",
-                in_sz, model_object->input_size);
-        result = MTB_ML_RESULT_BAD_ARG;
-        return result;
-    }
-
-    if(dataset_info.output_size != sizeof(MTB_ML_DATA_T))
-    {
-        printf("ERROR: Streaming data size (%d) doesn't match NN data size (%d), aborting\r\n",
-                dataset_info.output_size, sizeof(MTB_ML_DATA_T));
-        result = MTB_ML_RESULT_BAD_ARG;
-        return result;
-    }
-
-    if(dataset_info.input_size != sizeof(MTB_ML_DATA_T))
-    {
-        printf("ERROR: Streaming input unit size (%d) doesn't match NN (%d), aborting\r\n",
-                dataset_info.input_size, sizeof(MTB_ML_DATA_T));
-        result = MTB_ML_RESULT_BAD_ARG;
-        return result;
-    }
-
-    int recurrent_ts_size = mtb_ml_model_get_recurrent_time_series_frames(model_object);
-    if(recurrent_ts_size > 0)
-    {
-        /* Perform recurrent NN reset (rnn_status = 1) */
-        mtb_ml_model_rnn_state_control(model_object, 1, recurrent_ts_size);
-    }
-
-    /* Setup q-factor if input data is in Q-format */
-    mtb_ml_model_set_input_q_fraction_bits(model_object, dataset_info.q_fixed);
-    /* Do frame-by-frame inference */
-    for (int j = 0; j < n_ex; j++)
-    {
-        ts_cnt++;
-
-        result = uart_send_data(ML_CT_FRAME_REQ_STRING, sizeof(ML_CT_FRAME_REQ_STRING));
-        if(result != MTB_ML_RESULT_SUCCESS)
-        {
-            printf("ERROR: failed to send frame request\n");
-            return result;
-        }
-
-        /* Calculate timeout as ten times of 1 second per 10KB at 115200*/
-        /* For a small (a few bytes) transfers calculated timeout with the
-           asatiated overhead may be not long enough */
-        int rx_timeout = (10 * 1000 * in_sz * data_size)/(10*1024);
-        if(rx_timeout < DEFAULT_RX_TIMEOUT)
-        {
-            rx_timeout = DEFAULT_RX_TIMEOUT;
-        }
-        result = uart_get_data(stream_obj.rx_buff, in_sz * data_size, rx_timeout);
-        if(result != MTB_ML_RESULT_SUCCESS)
-        {
-            printf("ERROR: failed to receive frame data\n");
-            return result;
-        }
-
-        in_buffer = stream_obj.rx_buff;
-
-        /* Run inference */
-        result = mtb_ml_model_run(model_object, in_buffer);
-        if (result != MTB_ML_RESULT_SUCCESS)
-        {
-            int err = model_object->lib_error;
-#if defined(COMPONENT_ML_IFX)
-            printf("ERROR: Inference error code=%x, Layer index=%d, Line number=%d, Frame number=%d, aborting\r\n",
-            CY_ML_ERR_CODE(err), CY_ML_ERR_LAYER_INDEX(err), CY_ML_ERR_LINE_NUMBER(err), j);
-#elif defined(COMPONENT_ML_TFLM_INTERPRETER) || defined(COMPONENT_ML_TFLM_INTERPRETER_LESS)
-            printf("Inference eror: Tflite-Micro status: %d\r\n", err);
-#endif
-            return result;
-        }
-
-        /* Recurrent GRU network only check accuracy at its end of time series */
-        if ( recurrent_ts_size == 0 ||
-            (recurrent_ts_size != 0 && ts_cnt == recurrent_ts_size))
-        {
-            ts_cnt = 0;
-            result = uart_send_data(ML_CT_RESULT_STRING, sizeof(ML_CT_RESULT_STRING));
-            if(result != MTB_ML_RESULT_SUCCESS)
-            {
-                printf("ERROR: failed to send %s to host\n", ML_CT_RESULT_STRING);
-                return result;
-            }
-            result = uart_send_data((char *)stream_obj.out, dataset_info.output_size * model_object->output_size);
-            if(result != MTB_ML_RESULT_SUCCESS)
-            {
-                printf("ERROR: failed to send output data to host\n");
-                return result;
-            }
-
-#if !COMPONENT_ML_FLOAT32
-            int32_t out_q = mtb_ml_model_get_output_q_fraction_bits(model_object);
-            result = uart_send_data((char *)&out_q, sizeof(out_q));
-            if(result != MTB_ML_RESULT_SUCCESS)
-            {
-                printf("ERROR: failed to send q-fraction bits data to host\n");
-                return result;
-            }
-#endif
-        }
-    }
-
-    /* Generate profiling log if it is enabled */
-    mtb_ml_model_profile_log(model_object);
-
-    /* In the stream mode, all calculations are done on the host.*/
-    result = uart_wait_for_string(ML_TC_DONE_STRING,
-                                  sizeof(ML_TC_DONE_STRING), DEFAULT_RX_TIMEOUT);
-    if(result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failure receiving %s from the host\n", ML_TC_DONE_STRING);
-        return result;
-    }
-
-    result = uart_send_data(ML_CT_DONE_STRING, sizeof(ML_CT_DONE_STRING));
-    if (result != MTB_ML_RESULT_SUCCESS)
-    {
-        printf("ERROR: failed to send %s to the host\n", ML_CT_DONE_STRING);
-        return result;
-    }
-
-    return result;
-}
-
-/**
- * Initialize stream
- */
-cy_rslt_t mtb_ml_stream_init(const mtb_ml_stream_interface_t *interface, mtb_ml_profile_config_t profile_cfg,
-                             const mtb_ml_model_bin_t *model_bin)
-{
-    if(!interface || !model_bin)
+    if(!interface || !model_object)
     {
         printf("ERROR: mtb_ml_stream_init invalid parameters\r\n");
         return MTB_ML_RESULT_BAD_ARG;
     }
 
-    switch (interface->bus) {
-        case CY_ML_INTERFACE_UART:
-            uartobj = interface->interface_obj;
-            break;
-        default:
-            printf("ERROR: mtb_ml_stream_init invalid parameters\r\n");
-            return MTB_ML_RESULT_BAD_ARG;
+    /* Initialize comm */
+    stream_setup(interface->interface_obj);
+
+    /* Verify test data */
+    return stream_verify_test_data(interface, model_object);
+}
+
+cy_rslt_t mtb_ml_stream_output_data(mtb_ml_stream_interface_t *iface, void *tx_buf, uint32_t timeout_ms)
+{
+    if(!iface || !tx_buf)
+    {
+        printf("ERROR: mtb_ml_stream_output_data invalid parameters\r\n");
+        return MTB_ML_RESULT_BAD_ARG;
     }
 
-    /* Initialize the model runtime context and allocate resources */
-    cy_rslt_t result = mtb_ml_model_init(model_bin, NULL,
-                                         &stream_obj.model_object);
-    if (result != MTB_ML_RESULT_SUCCESS)
+    /* Send "result" string to host */
+    cy_rslt_t result = stream_send_data(iface, ML_CT_RESULT_STRING, sizeof(ML_CT_RESULT_STRING), timeout_ms);
+    if(result != MTB_ML_RESULT_SUCCESS)
     {
-        printf("MTB ML initialization failure:%"PRIu32"\r\n", result);
+        printf("ERROR: failed to send result string to host\r\n");
         return result;
     }
 
-    stream_obj.model_bin = model_bin;
+    /* Send output data */
+    return stream_send_data(iface, tx_buf, iface->output_size * sizeof(MTB_ML_DATA_T), timeout_ms);
+}
 
-    /* Allocate buffers */
-
-    /* Get the model output size */
-    int output_size;
-    mtb_ml_model_get_output(stream_obj.model_object, &stream_obj.out, &output_size);
-
-    /* allocate rx buffer (frame data) */
-    int input_size = mtb_ml_model_get_input_size(stream_obj.model_object);
-    stream_obj.rx_buff = (uint8_t *)malloc(input_size * sizeof(MTB_ML_DATA_T));
-    if (stream_obj.rx_buff == NULL)
+cy_rslt_t mtb_ml_stream_input_data(mtb_ml_stream_interface_t *iface, void *rx_buf, uint32_t timeout_ms)
+{
+    if(!iface || !rx_buf)
     {
-        printf("ERROR: Allocate memory for RX buffer failed\r\n");
-        mtb_ml_model_deinit(stream_obj.model_object);
-        return MTB_ML_RESULT_ALLOC_ERR;
+        printf("ERROR: mtb_ml_stream_output_data invalid parameters\r\n");
+        return MTB_ML_RESULT_BAD_ARG;
     }
 
-    /* Setup profile configuration */
-    mtb_ml_model_profile_config(stream_obj.model_object, profile_cfg);
+    /* Send frame request string to host. */
+    cy_rslt_t result = stream_send_data(iface, ML_CT_FRAME_REQ_STRING, sizeof(ML_CT_FRAME_REQ_STRING), timeout_ms);
+    if(result != MTB_ML_RESULT_SUCCESS)
+    {
+        printf("ERROR: failed to send frame request to host.\r\n");
+        return result;
+    }
+    /* If recurrent_ts_size is greater than 1, it indicates a streaming RNN
+    * model where data slicing is required. Otherwise, no slicing is required.
+    * (if recurrent_ts_size is -1, it indicates a non-RNN model, and if
+    * recurrent_ts_size 1, it indicates a non-streaming RNN model where no data
+    * slicing is required.
+    */
+    uint32_t slice_data_into = (iface->x_data_info.recurrent_ts_size < 0) ? 1 : iface->x_data_info.recurrent_ts_size;
+
+    /* Get input data */
+    return stream_get_data(iface, rx_buf, (iface->input_size * sizeof(MTB_ML_DATA_T)) / slice_data_into, timeout_ms);
+}
+
+cy_rslt_t mtb_ml_inform_host_done( mtb_ml_stream_interface_t *iface, uint32_t timeout_ms)
+{
+    if(!iface)
+    {
+        printf("ERROR: mtb_ml_inform_host_done invalid parameters\r\n");
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+    cy_rslt_t result = stream_get_string(iface, ML_TC_DONE_STRING, sizeof(ML_TC_DONE_STRING), timeout_ms);
+    if(result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+    return stream_send_data(iface, ML_CT_DONE_STRING, sizeof(ML_CT_DONE_STRING), timeout_ms);
+}
+
+/*******************************************************************************
+ * Private Functions
+*******************************************************************************/
+static cy_rslt_t stream_verify_test_data(   mtb_ml_stream_interface_t *iface,
+                                            const mtb_ml_model_t *model_object)
+{
+    cy_rslt_t result;
+    mtb_ml_x_file_header_t test_data_info;
+
+    /* Wait for the start string from the host (ML_START) */
+    printf("Waiting for the data stream to begin...\r\n");
+    result = stream_get_string(iface, ML_TC_START_STRING,
+                                  sizeof(ML_TC_START_STRING), ML_START_TIMEOUT);
+    if(result != MTB_ML_RESULT_SUCCESS)
+    {
+        printf("Timed out waiting for start string\r\n");
+        return result;
+    }
+
+    /* Print the model info */
+    result = mtb_ml_utils_print_model_info(model_object);
+
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Indicate the host that we are ready (ML_READY) */
+    result = stream_send_data(iface, ML_CT_READY_STRING, sizeof(ML_CT_READY_STRING), DEFAULT_TX_TIMEOUT);
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Send model regression info to host */
+    result = send_model_regr_info(iface, model_object);
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Receive test data info from host */
+    result = stream_get_string(iface, ML_TC_DATASET_REQ_SEND_STRING,
+                               sizeof(ML_TC_DATASET_REQ_SEND_STRING), DEFAULT_RX_TIMEOUT);
+    if(result != MTB_ML_RESULT_SUCCESS)
+    {
+        printf("ERROR: failed to receive %s from the host\r\n", ML_TC_DATASET_REQ_SEND_STRING);
+        return MTB_ML_RESULT_COMM_ERROR;
+    }
+
+    result = stream_send_data(iface, ML_CT_READY_STRING, sizeof(ML_CT_READY_STRING), DEFAULT_TX_TIMEOUT);
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        printf("ERROR: failed to send %s to the host\r\n", ML_CT_READY_STRING);
+        return MTB_ML_RESULT_COMM_ERROR;
+    }
+
+    result = stream_get_data(iface, &test_data_info, sizeof(test_data_info), DEFAULT_TX_TIMEOUT);
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        printf("ERROR: failure receiving dataset header\r\n");
+        return MTB_ML_RESULT_COMM_ERROR;
+    }
+
+    /* Print data received from host */
+    printf("\r\nReceived: num frames:%d frame size:%d recurrent_ts_size:%d\r\n",
+           (int)test_data_info.num_of_samples, (int)test_data_info.input_size, (int)test_data_info.recurrent_ts_size);
+
+    /* Validate test data against model */
+    switch(test_data_info.data_type)
+    {
+        case(MTB_ML_X_DATA_FLOAT32):
+            if(sizeof(MTB_ML_DATA_T) != sizeof(float))
+            {
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(float), sizeof(MTB_ML_DATA_T));
+                return MTB_ML_RESULT_INPUT_ERROR;
+            }
+            break;
+        case(MTB_ML_X_DATA_INT8):
+            if(sizeof(MTB_ML_DATA_T) != sizeof(int8_t))
+            {
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int8_t), sizeof(MTB_ML_DATA_T));
+                return MTB_ML_RESULT_INPUT_ERROR;
+            }
+            break;
+        case(MTB_ML_X_DATA_INT16):
+            if(sizeof(MTB_ML_DATA_T) != sizeof(int16_t))
+            {
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int16_t), sizeof(MTB_ML_DATA_T));
+                return MTB_ML_RESULT_INPUT_ERROR;
+            }
+            break;
+        default:
+            printf("ERROR: Unknown test data type\r\n");
+            return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    /* Initialize interface */
+    iface->input_size = (size_t)test_data_info.input_size;
+    iface->output_size = (size_t)model_object->output_size;
+
+    /* Updata x data info */
+    iface->x_data_info.num_of_samples = test_data_info.num_of_samples;
+    iface->x_data_info.input_size = test_data_info.input_size;
+    iface->x_data_info.recurrent_ts_size = test_data_info.recurrent_ts_size;
 
     return MTB_ML_RESULT_SUCCESS;
 }
 
-/**
- *  De-init stream
- */
-void mtb_ml_stream_deinit(void)
+static cy_rslt_t stream_send_data(mtb_ml_stream_interface_t *iface, void* tx_buf, size_t tx_length, uint32_t timeout_ms)
 {
-    /* Free resources and delete model runtime contex */
-    mtb_ml_model_deinit(stream_obj.model_object);
-    free(stream_obj.rx_buff);
+    return mtb_data_streaming_send(iface->interface_obj, (uint8_t *)tx_buf, tx_length, (void *)(&timeout_ms));
+}
+
+static cy_rslt_t stream_get_data(mtb_ml_stream_interface_t *iface, void* rx_buf, size_t rx_length, uint32_t timeout_ms)
+{
+    return mtb_data_streaming_receive(iface->interface_obj, (uint8_t *)rx_buf, rx_length, (void *)(&timeout_ms));
+}
+
+static cy_rslt_t stream_get_string(mtb_ml_stream_interface_t *iface, const char *string, size_t size, uint32_t timeout_ms)
+{
+    cy_rslt_t result = MTB_ML_RESULT_SUCCESS;
+    char rx_buf[DEFAULT_RX_BUFFER];
+
+    result = stream_get_data(iface, rx_buf, size, timeout_ms);
+    if(result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    if(strncmp(rx_buf, string, size) != 0)
+    {
+        printf("ERROR: Expected string %s but got string %s\r\n", string, rx_buf);
+        result = MTB_ML_RESULT_COMM_ERROR;
+    }
+    return result;
+}
+
+static cy_rslt_t send_model_regr_info(mtb_ml_stream_interface_t *iface, const mtb_ml_model_t *model_object)
+{
+    cy_rslt_t result;
+    mtb_ml_regression_info_t model_regr_info;
+
+    /* Wait for data request string */
+    result = stream_get_string(iface, ML_TC_MODEL_DATA_REQ_STRING, sizeof(ML_TC_MODEL_DATA_REQ_STRING), DEFAULT_RX_TIMEOUT);
+    if(result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Send model data string */
+    result = stream_send_data(iface, ML_CT_MODEL_DATA_STRING, sizeof(ML_CT_MODEL_DATA_STRING), DEFAULT_TX_TIMEOUT);
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Populate model info */
+    model_regr_info.model_size = model_object->model_size;
+    model_regr_info.output_size = model_object->output_size;
+    model_regr_info.buffer_size = model_object->buffer_size;
+    model_regr_info.model_time_steps = model_object->model_time_steps;
+    model_regr_info.output_zero_point = model_object->output_zero_point;
+    model_regr_info.output_scale = model_object->output_scale;
+
+    /* Send model info */
+    return stream_send_data(iface, (void *)&model_regr_info, sizeof(model_regr_info), DEFAULT_TX_TIMEOUT);
+}
+
+static cy_rslt_t stream_setup(mtb_data_streaming_interface_t* iface)
+{
+    iface->send     = stream_uart_send;
+    iface->receive  = stream_uart_get;
+    /* for CY_HAL rely on object allocated in retarget-io itself */
+#if !defined(COMPONENT_MTB_HAL)
+    mtb_data_streaming_context_t *context = (mtb_data_streaming_context_t *)&(iface->context);
+    context->obj_inst.uart = &cy_retarget_io_uart_obj;
+#endif
+
+    return CY_RSLT_SUCCESS;
+}
+
+#if !defined(COMPONENT_MTB_HAL)
+#define ml_uart_writable   cyhal_uart_writable
+#define ml_uart_write      cyhal_uart_write
+#define ml_uart_read       cyhal_uart_read
+#define ml_system_delay_ms cyhal_system_delay_ms
+#define ml_system_delay_us cyhal_system_delay_us
+#else
+#define ml_uart_writable   mtb_hal_uart_writable
+#define ml_uart_write      mtb_hal_uart_write
+#define ml_uart_read       mtb_hal_uart_read
+#define ml_system_delay_ms mtb_hal_system_delay_ms
+#define ml_system_delay_us mtb_hal_system_delay_us
+#endif
+
+static cy_rslt_t stream_uart_send(mtb_data_streaming_vcontext_t* vcontext,
+                                    void* data, size_t count, void* tag)
+{
+    mtb_data_streaming_context_t *context = (mtb_data_streaming_context_t *)vcontext;
+    /* tag is the timeout in ms */
+    volatile uint32_t timeout_ms = *((uint32_t *)tag);
+    size_t requested_tx = count;
+    size_t bytes_sent = 0;
+    char *tx_p = (char *)data;
+    while(bytes_sent < requested_tx)
+    {
+        /* Wait until UART TX buffer has some space */
+        while(ml_uart_writable(context->obj_inst.uart) < 32)
+        {
+            /* Timeout of 0 means wait forever */
+            if(timeout_ms == 0)
+            {
+                continue;
+            }
+            (void)ml_system_delay_ms(1);
+            if(--timeout_ms == 0)
+            {
+                return MTB_ML_RESULT_TIMEOUT;
+            }
+        }
+
+        if (ml_uart_write(context->obj_inst.uart, tx_p, &count) != CY_RSLT_SUCCESS)
+        {
+            return MTB_ML_RESULT_COMM_ERROR;
+        }
+        bytes_sent += count;
+        tx_p = tx_p + (char)count;
+        count = requested_tx - bytes_sent;
+    }
+
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+static cy_rslt_t stream_uart_get(mtb_data_streaming_vcontext_t* vcontext,
+                                uint8_t* data, size_t count, void* tag)
+{
+    mtb_data_streaming_context_t *context = (mtb_data_streaming_context_t *)vcontext;
+    /* tag is the timeout in ms */
+    volatile uint32_t timeout_ms = *((uint32_t *)tag);
+    size_t rx_length = count;
+    size_t rx_count = 0;
+    uint8_t *rx_p = data;
+
+    while(rx_count < count)
+    {
+        rx_length = count - rx_count;
+        if(ml_uart_read(context->obj_inst.uart, rx_p, &rx_length) != CY_RSLT_SUCCESS)
+        {
+            return MTB_ML_RESULT_COMM_ERROR;
+        }
+
+        if(rx_length == 0)
+        {
+            /* Timeout of 0 means wait forever */
+            if(timeout_ms != 0)
+            {
+                (void)ml_system_delay_ms(1);
+                if(--timeout_ms == 0)
+                {
+                    return MTB_ML_RESULT_TIMEOUT;
+                }
+            }
+        }
+        rx_count += rx_length;
+        rx_p += rx_length;
+    }
+
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+static inline cy_rslt_t mtb_data_streaming_receive(mtb_data_streaming_interface_t* iface,
+                                                   uint8_t* data, size_t count, void* tag)
+{
+    return iface->receive(&(iface->context), data, count, tag);
+}
+
+static inline cy_rslt_t mtb_data_streaming_send(mtb_data_streaming_interface_t* iface,
+                                                uint8_t* data, size_t count, void* tag)
+{
+    return iface->send(&(iface->context), data, count, tag);
 }

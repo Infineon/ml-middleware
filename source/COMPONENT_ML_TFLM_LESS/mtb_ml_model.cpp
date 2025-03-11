@@ -7,7 +7,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -42,13 +42,13 @@
 #include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
-#include "mtb_ml_model.h"
+#include "mtb_ml.h"
 #include <tensorflow/lite/kernels/kernel_util.h>
 
 extern "C" {
 
 /* LCOV_EXCL_START (Excluded from the code coverage, until the STOP marker) */
-int __attribute__((weak)) mtb_ml_model_profile_get_tsc(uint32_t *val)
+int __attribute__((weak)) mtb_ml_model_profile_get_tsc(uint64_t *val)
 {
     return 0;
 }
@@ -90,6 +90,9 @@ static MTB_ML_DATA_T * output_ptr(tflm_rmf_apis_t *rmf_api)
     return (MTB_ML_DATA_T *) rmf_api->model_output_ptr(0);
 }
 
+/*******************************************************************************
+ * Public Functions
+*******************************************************************************/
 cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_buffer_t *buffer, mtb_ml_model_t **object)
 {
     mtb_ml_model_t *model_object = NULL;
@@ -129,10 +132,13 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
     }
 
     /* Get model parameters */
+    /* Input parameters */
     model_object->input = input_ptr(rmf_api);
     model_object->input_size = input_elements(rmf_api);
     model_object->input_zero_point = rmf_api->model_input(0)->params.zero_point;
     model_object->input_scale = rmf_api->model_input(0)->params.scale;
+    model_object->model_time_steps = rmf_api->model_input(0)->dims->data[1];
+    /* Output parameters*/
     model_object->output_size = output_elements(rmf_api);
     model_object->output = output_ptr(rmf_api);
     model_object->output_zero_point = rmf_api->model_output(0)->params.zero_point;
@@ -142,9 +148,6 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
     return MTB_ML_RESULT_SUCCESS;
 }
 
-/**
- * Delete TfLite model runtime object and free all dynamically allocated memory
- */
 cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object)
 {
     /* Sanity check of input parameters */
@@ -157,10 +160,6 @@ cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object)
     return MTB_ML_RESULT_SUCCESS;
 }
 
-
-/**
- * Perform NN model inference
- */
 cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
 {
     TfLiteStatus ret;
@@ -182,7 +181,11 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
     /* Model profiling */
     if (object->profiling & MTB_ML_PROFILE_ENABLE_MODEL)
     {
-        mtb_ml_model_profile_get_tsc(&object->m_cycles);
+        mtb_ml_model_profile_get_tsc(&object->m_cpu_cycles);
+#if (!defined(COMPONENT_RTOS) && \
+      defined(COMPONENT_NNLITE2))
+        mtb_ml_npu_cycles = 0;
+#endif
     }
     ret = rmf_api->model_invoke();
     if ( ret != kTfLiteOk )
@@ -193,20 +196,45 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
 
     if (object->profiling & MTB_ML_PROFILE_ENABLE_MODEL)
     {
-        uint32_t cycles;
+        uint64_t cycles = 0U;
         mtb_ml_model_profile_get_tsc(&cycles);
-        object->m_cycles = cycles - object->m_cycles;
-        if (object->m_cycles > object->m_peak_cycles)
+        uint64_t cpu_cycles_only = cycles - object->m_cpu_cycles;
+#if (!defined(COMPONENT_RTOS) && \
+      defined(COMPONENT_NNLITE2))
+        /* mtb_ml_init() : mtb_ml_norm_clk_freq = npu_freq/cpu_freq */
+        uint64_t norm_npu_cycles = (uint64_t)(((float)mtb_ml_npu_cycles) / mtb_ml_norm_clk_freq);
+        /* Check for bad cpu/npu count values so we don't overflow */
+        if (norm_npu_cycles > cpu_cycles_only)
         {
-            object->m_peak_cycles = object->m_cycles;
-            object->m_peak_frame = object->m_sum_frames;
+            return MTB_ML_RESULT_CYCLE_COUNT_ERROR;
         }
+
+        object->m_npu_cycles = mtb_ml_npu_cycles;
+        if (object->m_npu_cycles > object->m_npu_peak_cycles)
+        {
+            object->m_npu_peak_cycles = object->m_npu_cycles;
+            object->m_npu_peak_frame = object->m_sum_frames;
+        }
+        object->m_npu_sum_cycles += object->m_npu_cycles;
+        /* Subtracting NPU fraction */
+        cpu_cycles_only -= norm_npu_cycles;
+#endif
+        if (cpu_cycles_only > object->m_cpu_peak_cycles)
+        {
+            object->m_cpu_peak_cycles = cpu_cycles_only;
+            object->m_cpu_peak_frame = object->m_sum_frames;
+        }
+        object->m_cpu_sum_cycles += cpu_cycles_only;
         object->m_sum_frames++;
-        object->m_sum_cycles += object->m_cycles;
     }
     else if (object->profiling & MTB_ML_LOG_ENABLE_MODEL_LOG)
     {
        MTB_ML_DATA_T * output_ptr = object->output;
+       /**
+       * This string must track ML_PROFILE_OUTPUT_STRING in mtb_ml_stream.c,
+       * as the header file is currently unable to be included due to conflicts.
+       */
+       printf(" output:");
        for (int j = 0; j < object->output_size; j++)
        {
            printf("%6.3f ", (float) (output_ptr[j]));
@@ -217,9 +245,6 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
     return MTB_ML_RESULT_SUCCESS;
 }
 
-/**
- * Get NN model output buffer pointer and its size
- */
 cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int *size_ptr)
 {
     /* Sanity check of input parameters */
@@ -241,17 +266,11 @@ cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **
     return MTB_ML_RESULT_SUCCESS;
 }
 
-/**
- * Get NN model input buffer size
- */
 int mtb_ml_model_get_input_size(const mtb_ml_model_t *object)
 {
     return object->input_size;
 }
 
-/**
- * Update MTB ML inference profiling setting
- */
 cy_rslt_t mtb_ml_model_profile_config(mtb_ml_model_t *object, mtb_ml_profile_config_t config)
 {
     /* Sanity check of input parameters */
@@ -264,16 +283,19 @@ cy_rslt_t mtb_ml_model_profile_config(mtb_ml_model_t *object, mtb_ml_profile_con
     if (object->profiling != MTB_ML_PROFILE_DISABLE)
     {
         object->m_sum_frames = 0;
-        object->m_sum_cycles = 0;
-        object->m_peak_frame = 0;
-        object->m_peak_cycles = 0;
+        object->m_cpu_sum_cycles = 0;
+        object->m_cpu_peak_frame = 0;
+        object->m_cpu_peak_cycles = 0;
     }
+#if defined(COMPONENT_U55) || \
+    defined(COMPONENT_NNLITE2)
+        object->m_npu_sum_cycles = 0;
+        object->m_npu_peak_frame = 0;
+        object->m_npu_peak_cycles = 0;
+#endif
     return MTB_ML_RESULT_SUCCESS;
 }
 
-/**
- * Generate MTB ML profiling log
- */
 cy_rslt_t mtb_ml_model_profile_log(mtb_ml_model_t *object)
 {
     /* Sanity check of input parameters */
@@ -284,54 +306,39 @@ cy_rslt_t mtb_ml_model_profile_log(mtb_ml_model_t *object)
 
     if (object->profiling & MTB_ML_PROFILE_ENABLE_MODEL)
     {
-        printf("PROFILE_INFO, MTB ML model profile, avg_cyc=%-10.2f, peak_cyc=%-" PRIu32 ", peak_frame=%-" PRIu32 "\r\n",
-                (float)object->m_sum_cycles / object->m_sum_frames,
-                object->m_peak_cycles,
-                object->m_peak_frame);
+        printf("PROFILE_INFO, MTB ML model profile, avg_cpu_cyc=%-10.2f, peak_cpu_cyc=%.0f, peak_cpu_frame=%-" PRIu32 ", cpu_freq_Mhz=%-" PRIu32 "\r\n",
+                (float)object->m_cpu_sum_cycles / object->m_sum_frames,
+                (float)object->m_cpu_peak_cycles,
+                object->m_cpu_peak_frame,
+                mtb_ml_cpu_clk_freq / 1000000);
+#if defined(COMPONENT_U55) || \
+    defined(COMPONENT_NNLITE2)
+        printf("PROFILE_INFO, MTB ML model profile, avg_npu_cyc=%-10.2f, peak_npu_cyc=%.0f, peak_npu_frame=%-" PRIu32 ", npu_freq_Mhz=%-" PRIu32 "\r\n",
+                (float)object->m_npu_sum_cycles / object->m_sum_frames,
+                (float)object->m_npu_peak_cycles,
+                object->m_npu_peak_frame,
+                mtb_ml_npu_clk_freq / 1000000);
+#endif
     }
 
     return MTB_ML_RESULT_SUCCESS;
 }
 
-/* LCOV_EXCL_START (Excluded from the code coverage, until the STOP marker) */
-/**
- * Get the number of frame in recurrent model time series
- */
-int mtb_ml_model_get_recurrent_time_series_frames(const mtb_ml_model_t *object)
+cy_rslt_t mtb_ml_model_rnn_reset_all_parameters(mtb_ml_model_t *object)
 {
-    (void) object;
-    return 0;
-}
-
-/**
- * Update recurrent NN reset state
- */
-cy_rslt_t mtb_ml_model_rnn_state_control(mtb_ml_model_t *object, int status, int win_size)
-{
-    (void) object;
-    (void) status;
-    (void) win_size;
+    /* Sanity check of model object parameter */
+    if (object == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+    tflm_rmf_apis_t * rmf_api = (tflm_rmf_apis_t *) object->tflm_obj;
+    if ( rmf_api->model_reset() != kTfLiteOk )
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
     return MTB_ML_RESULT_SUCCESS;
 }
 
-/**
- * Set NN model input data Q-format fraction bits
- */
-cy_rslt_t mtb_ml_model_set_input_q_fraction_bits(mtb_ml_model_t *object, uint8_t bits)
-{
-    (void) object;
-    (void) bits;
-    return MTB_ML_RESULT_SUCCESS;
-}
-
-/**
- * Get NN model output data Q-format fraction bits
- */
-uint8_t mtb_ml_model_get_output_q_fraction_bits(const mtb_ml_model_t *object)
-{
-    (void) object;
-    return 0;
-}
 /* LCOV_EXCL_STOP */
 
 #ifdef __cplusplus

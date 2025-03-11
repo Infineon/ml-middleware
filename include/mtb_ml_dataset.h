@@ -5,7 +5,7 @@
 * This is the test dataset header file of ModusToolbox ML middleware library.
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -39,13 +39,13 @@
 #if !defined(__MTB_ML_DATASET_H__)
 #define __MTB_ML_DATASET_H__
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
 
 /******************************************************************************
  * Macros
@@ -59,7 +59,7 @@ typedef enum MTB_ML_X_DATA_TYPE {
     MTB_ML_X_DATA_UNKNOWN = 0,
     MTB_ML_X_DATA_FLOAT32 = 1,
     MTB_ML_X_DATA_INT8 =    2,
-    MTB_ML_X_DATA_INT16 =   3
+    MTB_ML_X_DATA_INT16 =   3,
 } mtb_ml_x_data_type_t;
 
 /******************************************************************************
@@ -74,10 +74,10 @@ typedef enum MTB_ML_X_DATA_TYPE {
  */
 typedef struct mtb_ml_x_file_header
 {
-    mtb_ml_x_data_type_t data_type;     /**< data type of sample dataset */
-    int32_t num_of_samples;             /**< number of sample dataset */
-    int32_t frame_size;                 /**< frame size of sample dataset */
-    int32_t q_factor;                   /**< q factor of sample dataset (IFX inference only) */
+    mtb_ml_x_data_type_t data_type; /**< data type of sample dataset */
+    int32_t num_of_samples;         /**< number of samples (or frames) in dataset */
+    int32_t input_size;             /**< Input length (or frame size) of dataset */
+    int32_t recurrent_ts_size;      /**< -1 - non-RNN model, 1 - non-streaming RNN, other - number of time steps */
 } mtb_ml_x_file_header_t;
 
 #if defined(__cplusplus)

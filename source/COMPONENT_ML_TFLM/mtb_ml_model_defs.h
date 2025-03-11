@@ -5,7 +5,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2022, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -51,7 +51,9 @@
 /**
  * A type definition for MTB ML Model's input/output data
  */
-#if defined(COMPONENT_ML_INT8x8)
+#if defined(COMPONENT_ML_INT16x8)
+typedef int16_t MTB_ML_DATA_T;
+#elif defined(COMPONENT_ML_INT8x8)
 typedef int8_t MTB_ML_DATA_T;
 #elif defined(COMPONENT_ML_FLOAT32)
 typedef float MTB_ML_DATA_T;
@@ -77,6 +79,10 @@ typedef float MTB_ML_DATA_T;
 #define ML_INCLUDE_MODEL_FILE_IMPL(m)          INCLUDE_FILE(m,_tflm_model_int8x8.h)
 #define ML_INCLUDE_MODEL_X_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_x_data_int8x8.h)
 #define ML_INCLUDE_MODEL_Y_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_y_data_int8x8.h)
+#elif defined(COMPONENT_ML_INT16x8)
+#define ML_INCLUDE_MODEL_FILE_IMPL(m)          INCLUDE_FILE(m,_tflm_model_int16x8.h)
+#define ML_INCLUDE_MODEL_X_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_x_data_int16x8.h)
+#define ML_INCLUDE_MODEL_Y_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_y_data_int16x8.h)
 #else
   $(error Unsupported data type)
 #endif
