@@ -5,7 +5,7 @@
 * This file contains interface for ML validation data streaming feature
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -285,27 +285,28 @@ static cy_rslt_t stream_verify_test_data(   mtb_ml_stream_interface_t *iface,
     printf("\r\nReceived: num frames:%d frame size:%d recurrent_ts_size:%d\r\n",
            (int)test_data_info.num_of_samples, (int)test_data_info.input_size, (int)test_data_info.recurrent_ts_size);
 
+    int input_type_size = model_object->input_type_size;
     /* Validate test data against model */
     switch(test_data_info.data_type)
     {
         case(MTB_ML_X_DATA_FLOAT32):
-            if(sizeof(MTB_ML_DATA_T) != sizeof(float))
+            if(input_type_size != sizeof(float))
             {
-                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(float), sizeof(MTB_ML_DATA_T));
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(float), input_type_size);
                 return MTB_ML_RESULT_INPUT_ERROR;
             }
             break;
         case(MTB_ML_X_DATA_INT8):
-            if(sizeof(MTB_ML_DATA_T) != sizeof(int8_t))
+            if(input_type_size != sizeof(int8_t))
             {
-                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int8_t), sizeof(MTB_ML_DATA_T));
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int8_t), input_type_size);
                 return MTB_ML_RESULT_INPUT_ERROR;
             }
             break;
         case(MTB_ML_X_DATA_INT16):
-            if(sizeof(MTB_ML_DATA_T) != sizeof(int16_t))
+            if(input_type_size != sizeof(int16_t))
             {
-                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int16_t), sizeof(MTB_ML_DATA_T));
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int16_t), input_type_size);
                 return MTB_ML_RESULT_INPUT_ERROR;
             }
             break;

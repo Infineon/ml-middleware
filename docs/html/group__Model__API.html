@@ -109,9 +109,15 @@ Functions</h2></td></tr>
 <tr class="memitem:gaa3573aa84ae7b6df1ddd9848f80a3d52"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#gaa3573aa84ae7b6df1ddd9848f80a3d52">mtb_ml_model_get_input_size</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
 <tr class="memdesc:gaa3573aa84ae7b6df1ddd9848f80a3d52"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get NN model input data size  <a href="#gaa3573aa84ae7b6df1ddd9848f80a3d52">More...</a><br /></td></tr>
 <tr class="separator:gaa3573aa84ae7b6df1ddd9848f80a3d52"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga46d7b983105d1b85980094ee718a2924"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga46d7b983105d1b85980094ee718a2924">mtb_ml_model_get_input_detail</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, int index, MTB_ML_DATA_T **in_pptr, size_t *size_ptr, int **dim_ptr, int *dim_len_ptr, int *zero_ptr, float *scale_ptr)</td></tr>
+<tr class="memdesc:ga46d7b983105d1b85980094ee718a2924"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get NN model input details  <a href="#ga46d7b983105d1b85980094ee718a2924">More...</a><br /></td></tr>
+<tr class="separator:ga46d7b983105d1b85980094ee718a2924"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga6bbd085fed18120775b1acce2a47e0e2"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga6bbd085fed18120775b1acce2a47e0e2">mtb_ml_model_get_output</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, MTB_ML_DATA_T **out_pptr, int *size_ptr)</td></tr>
 <tr class="memdesc:ga6bbd085fed18120775b1acce2a47e0e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get NN model output buffer and size  <a href="#ga6bbd085fed18120775b1acce2a47e0e2">More...</a><br /></td></tr>
 <tr class="separator:ga6bbd085fed18120775b1acce2a47e0e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga140aa87bc0faf92e7dc76a330bfa8206"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga140aa87bc0faf92e7dc76a330bfa8206">mtb_ml_model_get_output_detail</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object, int index, MTB_ML_DATA_T **out_pptr, size_t *size_ptr, int **dim_ptr, int *dim_len_ptr, int *zero_ptr, float *scale_ptr)</td></tr>
+<tr class="memdesc:ga140aa87bc0faf92e7dc76a330bfa8206"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Get NN model output details  <a href="#ga140aa87bc0faf92e7dc76a330bfa8206">More...</a><br /></td></tr>
+<tr class="separator:ga140aa87bc0faf92e7dc76a330bfa8206"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5e0db44fc0870fe02de8fc2aa2a07334"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Model__API.html#ga5e0db44fc0870fe02de8fc2aa2a07334">mtb_ml_model_rnn_reset_all_parameters</a> (<a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *object)</td></tr>
 <tr class="memdesc:ga5e0db44fc0870fe02de8fc2aa2a07334"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Reset model parameters  <a href="#ga5e0db44fc0870fe02de8fc2aa2a07334">More...</a><br /></td></tr>
 <tr class="separator:ga5e0db44fc0870fe02de8fc2aa2a07334"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -184,6 +190,86 @@ Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="ga46d7b983105d1b85980094ee718a2924"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga46d7b983105d1b85980094ee718a2924">&#9670;&nbsp;</a></span>mtb_ml_model_get_input_detail()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">cy_rslt_t mtb_ml_model_get_input_detail </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *&#160;</td>
+          <td class="paramname"><em>object</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>index</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MTB_ML_DATA_T **&#160;</td>
+          <td class="paramname"><em>in_pptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>size_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int **&#160;</td>
+          <td class="paramname"><em>dim_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>dim_len_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>zero_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>scale_ptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>: Get NN model input details </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">index</td><td>: Input tensor index </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">in_pptr</td><td>: Pointer of models input data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">size_ptr</td><td>: Pointer to contain size of model input data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dim_ptr</td><td>: Pointer to model dimensions </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dim_len_ptr</td><td>: Pointer to model dimension length </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">zero_ptr</td><td>: Pointer to model input zero point </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">scale_ptr</td><td>: Pointer to model input scale</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid. </dd></dl>
+
+</div>
+</div>
 <a id="gaa3573aa84ae7b6df1ddd9848f80a3d52"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaa3573aa84ae7b6df1ddd9848f80a3d52">&#9670;&nbsp;</a></span>mtb_ml_model_get_input_size()</h2>
 
@@ -252,7 +338,87 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>: Output data size : 0 - if input parameter is invalid. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid. </dd></dl>
+
+</div>
+</div>
+<a id="ga140aa87bc0faf92e7dc76a330bfa8206"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga140aa87bc0faf92e7dc76a330bfa8206">&#9670;&nbsp;</a></span>mtb_ml_model_get_output_detail()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">cy_rslt_t mtb_ml_model_get_output_detail </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *&#160;</td>
+          <td class="paramname"><em>object</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>index</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MTB_ML_DATA_T **&#160;</td>
+          <td class="paramname"><em>out_pptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>size_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int **&#160;</td>
+          <td class="paramname"><em>dim_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>dim_len_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int *&#160;</td>
+          <td class="paramname"><em>zero_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">float *&#160;</td>
+          <td class="paramname"><em>scale_ptr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>: Get NN model output details </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">object</td><td>: Pointer of model object. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">index</td><td>: Output tensor index </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">out_pptr</td><td>: Pointer of models output data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">size_ptr</td><td>: Pointer to contain size of model output data </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dim_ptr</td><td>: Pointer to model dimensions </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">dim_len_ptr</td><td>: Pointer to model dimension length </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">zero_ptr</td><td>: Pointer to model output zero point </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">scale_ptr</td><td>: Pointer to model output scale</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid. </dd></dl>
 
 </div>
 </div>

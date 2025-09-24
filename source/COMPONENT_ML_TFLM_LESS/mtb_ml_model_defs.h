@@ -6,7 +6,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -103,6 +103,9 @@ typedef int16_t MTB_ML_DATA_T;
 typedef int8_t MTB_ML_DATA_T;
 #elif defined(COMPONENT_ML_FLOAT32)
 typedef float MTB_ML_DATA_T;
+#else
+/* Run-time type detect */
+typedef void MTB_ML_DATA_T;
 #endif
 
 /******************************************************************************
@@ -174,7 +177,8 @@ typedef float MTB_ML_DATA_T;
 #define ML_INCLUDE_MODEL_X_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_x_data_int16x8.h)
 #define ML_INCLUDE_MODEL_Y_DATA_FILE_IMPL(m)   INCLUDE_FILE(m,_tflm_y_data_int16x8.h)
 #else
-  $(error Unsupported data type)
+  /* Need to do model and regression types inclusion manually, without macros-es.
+   * See readme.md for examples. */
 #endif
 
 #define ML_MODEL_X_DATA_BIN_IMPL(m)            MODEL_DATA_BIN(m,_x_data_bin)

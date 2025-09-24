@@ -5,7 +5,7 @@
 * This is the header file of ModusToolbox ML middleware NN model module.
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -95,7 +95,7 @@ typedef struct
 /**@}*/
 #if defined(COMPONENT_ML_TFLM)
 /** @name COMPONENT_ML_TFLM
- *  Model pareamters for TFLM with interpreter
+ *  Model parameters for TFLM with interpreter
  */
 ///@{
     const uint8_t *      model_bin;     /**< the pointer of Tflite model */
@@ -105,7 +105,7 @@ typedef struct
 #endif
 #if defined(COMPONENT_ML_TFLM_LESS)
 /** @name COMPONENT_ML_TFLM_LESS
- *  Model pareamters for TFLM without interpreter
+ *  Model parameters for TFLM without interpreter
  */
 ///@{
     tflm_rmf_apis_t      rmf_bin;     /**< the data structure of Tflite APIs */
@@ -130,6 +130,8 @@ typedef struct
     int lib_error;                      /**< error code from ML inference library */
     MTB_ML_DATA_T *output;              /**< pointer of ML inference output buffer */
     MTB_ML_DATA_T *input;               /**< pointer of ML inference input buffer */
+    int input_type_size;                /**< sizeof(input data) */
+    int output_type_size;               /**< sizeof(output data) */
     void *tflm_obj;                     /**< pointer of Tflite-micro runtime object */
     int model_time_steps;               /*< number of model time steps */
     int recurrent_ts_size;              /**< number of data time steps in NN. 0 if non streaming RNN */
@@ -231,16 +233,51 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input);
 int mtb_ml_model_get_input_size(const mtb_ml_model_t *object);
 
 /**
+ * \brief : Get NN model input details
+ *
+ * \param[in]  object        : Pointer of model object.
+ * \param[in] index         : Input tensor index
+ * \param[in] in_pptr       : Pointer of models input data
+ * \param[in] size_ptr      : Pointer to contain size of model input data
+ * \param[in] dim_ptr       : Pointer to model dimensions
+ * \param[in] dim_len_ptr   : Pointer to model dimension length
+ * \param[in] zero_ptr      : Pointer to model input zero point
+ * \param[in] scale_ptr     : Pointer to model input scale
+ *
+ * \return                   : MTB_ML_RESULT_SUCCESS - success
+ *                           : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
+ */
+cy_rslt_t mtb_ml_model_get_input_detail(const mtb_ml_model_t *object, int index, MTB_ML_DATA_T **in_pptr, size_t* size_ptr,
+                                        int** dim_ptr, int* dim_len_ptr, int* zero_ptr, float* scale_ptr);
+/**
  * \brief : Get NN model output buffer and size
  *
  * \param[in] object     : Pointer of model object.
  * \param[out] out_pptr  : Pointer of output buffer pointer
  * \param[out] size_ptr  : Pointer of output size
  *
- * \return               : Output data size
- *                       : 0 - if input parameter is invalid.
+ * \return               : MTB_ML_RESULT_SUCCESS - success
+ *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
  */
 cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **out_pptr, int* size_ptr);
+
+/**
+ * \brief : Get NN model output details
+ *
+ * \param[in] object        : Pointer of model object.
+ * \param[in] index         : Output tensor index
+ * \param[in] out_pptr      : Pointer of models output data
+ * \param[in] size_ptr      : Pointer to contain size of model output data
+ * \param[in] dim_ptr       : Pointer to model dimensions
+ * \param[in] dim_len_ptr   : Pointer to model dimension length
+ * \param[in] zero_ptr      : Pointer to model output zero point
+ * \param[in] scale_ptr     : Pointer to model output scale
+ *
+ * \return                   : MTB_ML_RESULT_SUCCESS - success
+ *                           : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
+ */
+cy_rslt_t mtb_ml_model_get_output_detail(const mtb_ml_model_t *object, int index, MTB_ML_DATA_T **out_pptr, size_t* size_ptr,
+                                         int** dim_ptr, int* dim_len_ptr, int* zero_ptr, float* scale_ptr);
 
 /**
  * \brief : Reset model parameters

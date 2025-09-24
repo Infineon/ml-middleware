@@ -5,7 +5,7 @@
 * This is the header file of ModusToolbox ML  module
 *
 *******************************************************************************
-* (c) 2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -52,6 +52,17 @@ extern "C" {
 #if defined(COMPONENT_U55)
 #include "ethosu_driver.h"
 #include "pmu_ethosu.h"
+
+#define MTB_ML_ETHOSU_CACHE_MGMT_CONDITIONAL    (0)
+#define MTB_ML_ETHOSU_CACHE_MGMT_ALL_LAYERS     (1)
+#define MTB_ML_ETHOSU_CACHE_MGMT_OUTER_LAYERS   (2)
+
+#ifndef MTB_ML_ETHOSU_CACHE_MGMT_TYPE
+#define MTB_ML_ETHOSU_CACHE_MGMT_TYPE MTB_ML_ETHOSU_CACHE_MGMT_ALL_LAYERS
+#endif
+
+void mtb_ml_set_cache_mgmt_type(uint32_t type);
+uint32_t mtb_ml_get_cache_mgmt_type(void);
 #endif
 
 #if defined(COMPONENT_NNLITE2)
@@ -63,6 +74,8 @@ uint32_t Cy_NNLite_Sem_Create(void *sem);
 uint32_t Cy_NNLite_Sem_Wait(void *sem);
 uint32_t Cy_NNLite_Sem_Give(void *sem);
 uint32_t Cy_NNLite_Sem_Delete(void *sem);
+void Cy_NNLite_Lpm_Lock(void);
+void Cy_NNLite_Lpm_Unlock(void);
 #endif
 
 /******************************************************************************
@@ -122,6 +135,10 @@ extern float mtb_ml_norm_clk_freq;          /** NPU : CPU clock frequency */
 #endif
 
 /******************************************************************************
+ * Static variables
+******************************************************************************/
+
+/******************************************************************************
  * Structures
 ******************************************************************************/
 
@@ -167,6 +184,14 @@ cy_rslt_t mtb_ml_init(uint32_t priority);
  * \return                  : MTB_ML_RESULT_SUCCESS - success
  */
 cy_rslt_t mtb_ml_deinit(void);
+
+
+/**
+ * \brief : Informs user if mtb_ml_init was called already (!=0) and if following calls are not redundant
+ *
+ * \return                  : mtb_ml_init state
+ */
+ uint32_t mtb_ml_get_init_state(void);
 
 /**
  * @} end of MTB_ML_API group

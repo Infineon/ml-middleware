@@ -5,7 +5,7 @@
 * This is the common header file of ModusToolbox ML middleware library.
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -52,17 +52,12 @@ extern "C" {
  * Version
  *****************************************************************************/
 #define MTB_ML_MIDDLEWARE_VERSION_MAJOR     3
-#define MTB_ML_MIDDLEWARE_VERSION_MINOR     0
+#define MTB_ML_MIDDLEWARE_VERSION_MINOR     1
 #define MTB_ML_MIDDLEWARE_VERSION_PATCH     0
 
 /******************************************************************************
  * Macros
  *****************************************************************************/
-#if defined(COMPONENT_ML_TFLM) || defined(COMPONENT_ML_TFLM_LESS)
-  #if !(defined(COMPONENT_ML_FLOAT32) || defined(COMPONENT_ML_INT8x8) || defined(COMPONENT_ML_INT16x8))
-    #error Invalid data type with Tflite-Micro inference engine
-  #endif
-#endif
 
 /**
  * \addtogroup Common_Macro

@@ -98,11 +98,17 @@ $(document).ready(function(){initNavTree('group__Utils__API.html','');});
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
 <tr class="memitem:ga6daea933527d7f7ce1ae23b2551a62ec"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utils__API.html#ga6daea933527d7f7ce1ae23b2551a62ec">mtb_ml_utils_find_max</a> (const MTB_ML_DATA_T *in, int size)</td></tr>
-<tr class="memdesc:ga6daea933527d7f7ce1ae23b2551a62ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">: This function finds the maximum value in an array and return its index.  <a href="#ga6daea933527d7f7ce1ae23b2551a62ec">More...</a><br /></td></tr>
+<tr class="memdesc:ga6daea933527d7f7ce1ae23b2551a62ec"><td class="mdescLeft">&#160;</td><td class="mdescRight">: This function finds the maximum value in an array and return its index. Will only be used if MTB_ML_DATA_T is defined to int8/int16/float. Left for BWC reasons.  <a href="#ga6daea933527d7f7ce1ae23b2551a62ec">More...</a><br /></td></tr>
 <tr class="separator:ga6daea933527d7f7ce1ae23b2551a62ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa79c1696e23d16de5d82f355ed57c95b"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utils__API.html#gaa79c1696e23d16de5d82f355ed57c95b">mtb_ml_utils_find_max_int32</a> (const int32_t *in, int size)</td></tr>
-<tr class="memdesc:gaa79c1696e23d16de5d82f355ed57c95b"><td class="mdescLeft">&#160;</td><td class="mdescRight">: This function finds the maximum value in an int32_t array and return its index.  <a href="#gaa79c1696e23d16de5d82f355ed57c95b">More...</a><br /></td></tr>
-<tr class="separator:gaa79c1696e23d16de5d82f355ed57c95b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8eb35266feb77a089b3e08e4d0305968"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utils__API.html#ga8eb35266feb77a089b3e08e4d0305968">mtb_ml_utils_find_max_flt</a> (const float *in, int size)</td></tr>
+<tr class="memdesc:ga8eb35266feb77a089b3e08e4d0305968"><td class="mdescLeft">&#160;</td><td class="mdescRight">: This function finds the maximum value in an float array and return its index.  <a href="#ga8eb35266feb77a089b3e08e4d0305968">More...</a><br /></td></tr>
+<tr class="separator:ga8eb35266feb77a089b3e08e4d0305968"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaaf0813f60cd6d835bb2cba7f46330a0e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utils__API.html#gaaf0813f60cd6d835bb2cba7f46330a0e">mtb_ml_utils_find_max_int16</a> (const int16_t *in, int size)</td></tr>
+<tr class="memdesc:gaaf0813f60cd6d835bb2cba7f46330a0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">: This function finds the maximum value in an int16_t array and return its index.  <a href="#gaaf0813f60cd6d835bb2cba7f46330a0e">More...</a><br /></td></tr>
+<tr class="separator:gaaf0813f60cd6d835bb2cba7f46330a0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5ed52d5f401557dde46d1faa57d4a694"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utils__API.html#ga5ed52d5f401557dde46d1faa57d4a694">mtb_ml_utils_find_max_int8</a> (const int8_t *in, int size)</td></tr>
+<tr class="memdesc:ga5ed52d5f401557dde46d1faa57d4a694"><td class="mdescLeft">&#160;</td><td class="mdescRight">: This function finds the maximum value in an int8_t array and return its index.  <a href="#ga5ed52d5f401557dde46d1faa57d4a694">More...</a><br /></td></tr>
+<tr class="separator:ga5ed52d5f401557dde46d1faa57d4a694"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga51ac92aa83247e29a918033e53bddd26"><td class="memItemLeft" align="right" valign="top">cy_rslt_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__Utils__API.html#ga51ac92aa83247e29a918033e53bddd26">mtb_ml_utils_print_model_info</a> (const <a class="el" href="structmtb__ml__model__t.html">mtb_ml_model_t</a> *obj)</td></tr>
 <tr class="memdesc:ga51ac92aa83247e29a918033e53bddd26"><td class="mdescLeft">&#160;</td><td class="mdescRight">: Print detailed model info  <a href="#ga51ac92aa83247e29a918033e53bddd26">More...</a><br /></td></tr>
 <tr class="separator:ga51ac92aa83247e29a918033e53bddd26"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -141,7 +147,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>: This function finds the maximum value in an array and return its index. </p>
+<p>: This function finds the maximum value in an array and return its index. Will only be used if MTB_ML_DATA_T is defined to int8/int16/float. Left for BWC reasons. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">in</td><td>: Pointer of the array </td></tr>
@@ -149,20 +155,20 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>: The index of maximum value : -1 if input paramter is invalid. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>: The index of maximum value : -1 if input parameter is invalid. </dd></dl>
 
 </div>
 </div>
-<a id="gaa79c1696e23d16de5d82f355ed57c95b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa79c1696e23d16de5d82f355ed57c95b">&#9670;&nbsp;</a></span>mtb_ml_utils_find_max_int32()</h2>
+<a id="ga8eb35266feb77a089b3e08e4d0305968"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga8eb35266feb77a089b3e08e4d0305968">&#9670;&nbsp;</a></span>mtb_ml_utils_find_max_flt()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">int mtb_ml_utils_find_max_int32 </td>
+          <td class="memname">int mtb_ml_utils_find_max_flt </td>
           <td>(</td>
-          <td class="paramtype">const int32_t *&#160;</td>
+          <td class="paramtype">const float *&#160;</td>
           <td class="paramname"><em>in</em>, </td>
         </tr>
         <tr>
@@ -179,7 +185,7 @@ Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>: This function finds the maximum value in an int32_t array and return its index. </p>
+<p>: This function finds the maximum value in an float array and return its index. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">in</td><td>: Pointer of the array </td></tr>
@@ -187,7 +193,83 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>: The index of maximum value : -1 if input paramter is invalid. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>: The index of maximum value : -1 if input parameter is invalid. </dd></dl>
+
+</div>
+</div>
+<a id="gaaf0813f60cd6d835bb2cba7f46330a0e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gaaf0813f60cd6d835bb2cba7f46330a0e">&#9670;&nbsp;</a></span>mtb_ml_utils_find_max_int16()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mtb_ml_utils_find_max_int16 </td>
+          <td>(</td>
+          <td class="paramtype">const int16_t *&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>: This function finds the maximum value in an int16_t array and return its index. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">in</td><td>: Pointer of the array </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>: size of the array</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>: The index of maximum value : -1 if input parameter is invalid. </dd></dl>
+
+</div>
+</div>
+<a id="ga5ed52d5f401557dde46d1faa57d4a694"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga5ed52d5f401557dde46d1faa57d4a694">&#9670;&nbsp;</a></span>mtb_ml_utils_find_max_int8()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mtb_ml_utils_find_max_int8 </td>
+          <td>(</td>
+          <td class="paramtype">const int8_t *&#160;</td>
+          <td class="paramname"><em>in</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>: This function finds the maximum value in an int8_t array and return its index. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">in</td><td>: Pointer of the array </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">size</td><td>: size of the array</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>: The index of maximum value : -1 if input parameter is invalid. </dd></dl>
 
 </div>
 </div>
@@ -225,7 +307,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input paramter is invalid. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid. </dd></dl>
 
 </div>
 </div>
@@ -297,7 +379,7 @@ Functions</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input paramter is invalid. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>: MTB_ML_RESULT_SUCCESS - success : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid. </dd></dl>
 
 </div>
 </div>

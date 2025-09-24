@@ -6,7 +6,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -95,6 +95,8 @@ class MTBTFLiteMicro {
 
   /* Use for RNN state control. This will free subgraphs to the reset state */
   TfLiteStatus reset_all_variables() { return interpreter_.Reset(); }
+  TfLiteType model_input_type(int index = 0) { return interpreter_.input(index)->type; }
+  TfLiteType model_output_type(int index = 0) { return interpreter_.output(index)->type; }
 
   inputT* input_ptr(int index = 0) { return GetTensorData<inputT>(Input(index)); }
   size_t input_size(int index = 0) { return interpreter_.input(index)->bytes; }
@@ -117,10 +119,8 @@ class MTBTFLiteMicro {
  void SetInput(const inputT* custom_input, int recurrent_ts_size, int input_index = 0) {
     TfLiteTensor* input = interpreter_.input(input_index);
     inputT* input_buffer = tflite::GetTensorData<inputT>(input);
-    int input_length = input->bytes / sizeof(inputT);
-    for (int i = 0; i < input_length; i++) {
-        input_buffer[i] = custom_input[i];
-    }
+    /* Use memcpy instead of a for loop */
+    memcpy(input_buffer, custom_input, input->bytes);
   }
 
   void PrintAllocations() const {
@@ -137,6 +137,7 @@ class MTBTFLiteMicro {
 using MTB_TFLM_flt = MTBTFLiteMicro<float>;
 using MTB_TFLM_int8 = MTBTFLiteMicro<int8_t>;
 using MTB_TFLM_int16 = MTBTFLiteMicro<int16_t>;
+using MTB_TFLM_void = MTBTFLiteMicro<void>;
 
 } // namespace tflite
 
@@ -144,9 +145,14 @@ using MTB_TFLM_int16 = MTBTFLiteMicro<int16_t>;
 #define MTB_TFLM_Class MTB_TFLM_int8
 #elif defined COMPONENT_ML_INT16x8
 #define MTB_TFLM_Class MTB_TFLM_int16
-#else
+#elif defined COMPONENT_ML_FLOAT
 #define MTB_TFLM_Class MTB_TFLM_flt
+#else
+/* A run-time type selection will be used if none from
+ * list of int8 / int16 / float was selected as above */
+#define MTB_TFLM_Class MTB_TFLM_void
 #endif
+
 
 #ifndef TFLM_RESVAR_COUNT
 /* Set externally on demand by user. Disabled (0) by default */
@@ -263,17 +269,47 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
     }
 
     /* Input parameters */
-    model_object->input = TFLMClass->input_ptr();
+    model_object->input = (MTB_ML_DATA_T *)TFLMClass->input_ptr();
     model_object->input_size = TFLMClass->input_elements();
     model_object->input_zero_point = TFLMClass->input_zero_point();
     model_object->input_scale = TFLMClass->input_scale();
     model_object->model_time_steps = TFLMClass->get_model_time_steps();
     /* Output parameters*/
+    model_object->output = (MTB_ML_DATA_T *)TFLMClass->output_ptr();
     model_object->output_size = TFLMClass->output_elements();
-    model_object->output = TFLMClass->output_ptr();
     model_object->buffer_size = TFLMClass->get_used_arena_size();
     model_object->output_zero_point = TFLMClass->output_zero_point();
     model_object->output_scale = TFLMClass->output_scale();
+
+    switch (TFLMClass->model_input_type()) {
+    case kTfLiteInt8:
+        model_object->input_type_size = sizeof(int8_t);
+        break;
+    case kTfLiteInt16:
+        model_object->input_type_size = sizeof(int16_t);
+        break;
+    case kTfLiteFloat32:
+        model_object->input_type_size = sizeof(float);
+        break;
+    default:
+        ret = MTB_ML_RESULT_MISMATCH_DATA_TYPE;
+        goto ret_err;
+    }
+
+    switch (TFLMClass->model_output_type()) {
+    case kTfLiteInt8:
+        model_object->output_type_size = sizeof(int8_t);
+        break;
+    case kTfLiteInt16:
+        model_object->output_type_size = sizeof(int16_t);
+        break;
+    case kTfLiteFloat32:
+        model_object->output_type_size = sizeof(float);
+        break;
+    default:
+        ret = MTB_ML_RESULT_MISMATCH_DATA_TYPE;
+        goto ret_err;
+    }
 
     *object = model_object;
     return ret;
@@ -316,16 +352,23 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
     {
         mtb_ml_model_profile_get_tsc(&object->m_cpu_cycles);
 #if (!defined(COMPONENT_RTOS) && \
-      defined(COMPONENT_NNLITE2))
+     (defined(COMPONENT_U55) || \
+      defined(COMPONENT_NNLITE2)))
         mtb_ml_npu_cycles = 0;
 #endif
     }
-#if (defined(COMPONENT_U55) && defined(MTB_ML_DISABLE_CACHE_HIDDEN_LAYERS))
-    SCB_CleanDCache_by_Addr(object->input, object->input_size);
+#if defined(COMPONENT_U55)
+    if(mtb_ml_get_cache_mgmt_type() == MTB_ML_ETHOSU_CACHE_MGMT_OUTER_LAYERS)
+    {
+        SCB_CleanDCache_by_Addr((uint32_t *)object->input, object->input_size);
+    }
 #endif
     ret = Tflm->RunSingleIteration();
-#if (defined(COMPONENT_U55) && defined(MTB_ML_DISABLE_CACHE_HIDDEN_LAYERS))
-    SCB_InvalidateDCache_by_Addr(object->output, object->output_size);
+#if defined(COMPONENT_U55)
+    if(mtb_ml_get_cache_mgmt_type() == MTB_ML_ETHOSU_CACHE_MGMT_OUTER_LAYERS)
+    {
+        SCB_InvalidateDCache_by_Addr((uint32_t *)object->output, object->output_size);
+    }
 #endif
     if ( ret != kTfLiteOk )
     {
@@ -364,22 +407,42 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
             object->m_cpu_peak_cycles = cpu_cycles_only;
             object->m_cpu_peak_frame = object->m_sum_frames;
         }
+        object->m_cpu_cycles = cpu_cycles_only;
         object->m_cpu_sum_cycles += cpu_cycles_only;
         object->m_sum_frames++;
     }
     else if (object->profiling & MTB_ML_LOG_ENABLE_MODEL_LOG)
     {
-       MTB_ML_DATA_T * output_ptr = object->output;
-       /**
-       * This string must track ML_PROFILE_OUTPUT_STRING in mtb_ml_stream_impl.h,
-       * as the header file is currently unable to be included due to conflicts.
-       */
-       printf(" output:");
-       for (int j = 0; j < object->output_size; j++)
-       {
-          printf("%6.3f ", (float) (output_ptr[j]));
-       }
-       printf("\r\n");
+        MTB_ML_DATA_T * output_ptr = object->output;
+        /**
+        * This string must track ML_PROFILE_OUTPUT_STRING in mtb_ml_stream_impl.h,
+        * as the header file is currently unable to be included due to conflicts.
+        */
+        printf(" output:");
+        switch (object->output_type_size)
+        {
+            case sizeof(float):
+                for (int j = 0; j < object->output_size; j++)
+                {
+                    printf("%6.3f ", (float) (((float*)output_ptr)[j]));
+                }
+                break;
+            case sizeof(int16_t):
+                for (int j = 0; j < object->output_size; j++)
+                {
+                    printf("%6.3f ", (float) (((int16_t*)output_ptr)[j]));
+                }
+                break;
+            case sizeof(int8_t):
+                for (int j = 0; j < object->output_size; j++)
+                {
+                    printf("%6.3f ", (float) (((int8_t*)output_ptr)[j]));
+                }
+                break;
+            default:
+                return MTB_ML_RESULT_MISMATCH_DATA_TYPE;
+        }
+        printf("\r\n");
     }
 
     return MTB_ML_RESULT_SUCCESS;
@@ -402,6 +465,48 @@ cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **
     {
         *size_ptr = object->output_size;
     }
+
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_get_output_detail(const mtb_ml_model_t *object, int index, MTB_ML_DATA_T **out_pptr, size_t* size_ptr,
+                                         int** dim_ptr, int* dim_len_ptr, int* zero_ptr, float* scale_ptr)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL || size_ptr == NULL || out_pptr == NULL || zero_ptr == NULL || scale_ptr == NULL || dim_len_ptr == NULL || dim_ptr == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    tflite::MTB_TFLM_Class *Tflm = reinterpret_cast<tflite::MTB_TFLM_Class *>(object->tflm_obj);
+
+    *size_ptr	  = Tflm->output_elements(index);
+    *out_pptr	  = static_cast<MTB_ML_DATA_T*>(Tflm->output_ptr(index));
+    *zero_ptr 	  = Tflm->output_zero_point(index);
+    *scale_ptr 	  = Tflm->output_scale(index);
+    *dim_len_ptr  = Tflm->output_dims_len(index);
+    *dim_ptr 	  = Tflm->output_dims(index);
+
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_get_input_detail(const mtb_ml_model_t *object, int index, MTB_ML_DATA_T **in_pptr, size_t* size_ptr,
+                                        int** dim_ptr, int* dim_len_ptr, int* zero_ptr, float* scale_ptr)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL || size_ptr == NULL || in_pptr == NULL || zero_ptr == NULL || scale_ptr == NULL || dim_len_ptr == NULL || dim_ptr == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    tflite::MTB_TFLM_Class	*Tflm  = reinterpret_cast<tflite::MTB_TFLM_Class *>(object->tflm_obj);
+
+    *size_ptr	  = Tflm->input_elements(index);
+    *in_pptr	  = static_cast<MTB_ML_DATA_T*>(Tflm->input_ptr(index));
+    *zero_ptr 	  = Tflm->input_zero_point(index);
+    *scale_ptr 	  = Tflm->input_scale(index);
+    *dim_len_ptr  = Tflm->input_dims_len(index);
+    *dim_ptr 	  = Tflm->input_dims(index);
 
     return MTB_ML_RESULT_SUCCESS;
 }

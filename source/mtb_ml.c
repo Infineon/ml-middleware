@@ -6,7 +6,7 @@
 * middleware module
 *
 *******************************************************************************
-* (c) 2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -56,6 +56,11 @@ float mtb_ml_norm_clk_freq;
 extern struct ethosu_driver ethosu_drv;
 #endif
 
+/******************************************************************************
+ * Static variables
+******************************************************************************/
+static uint32_t mtb_ml_init_state = 0;
+
 /*******************************************************************************
  * Public Functions
 *******************************************************************************/
@@ -71,30 +76,44 @@ cy_rslt_t mtb_ml_init(uint32_t priority)
 {
     cy_rslt_t result = MTB_ML_RESULT_SUCCESS;
 
-    mtb_ml_cpu_clk_freq = (uint32_t)SystemCoreClock;
+    if (mtb_ml_init_state == 0)
+    {
+        mtb_ml_cpu_clk_freq = (uint32_t)SystemCoreClock;
 
 #if defined(COMPONENT_U55)
-    result = mtb_ml_ethosu_init(&ethosu_drv, priority);
+        result = mtb_ml_ethosu_init(&ethosu_drv, priority);
 #elif defined(COMPONENT_NNLITE2)
-    result = mtb_ml_nnlite_init(priority);
+        result = mtb_ml_nnlite_init(priority);
 #endif
 
 #if defined(COMPONENT_U55) || \
-    defined(COMPONENT_NNLITE2)
-    mtb_ml_norm_clk_freq = ((float)mtb_ml_npu_clk_freq) / ((float)mtb_ml_cpu_clk_freq);
+        defined(COMPONENT_NNLITE2)
+        mtb_ml_norm_clk_freq = ((float)mtb_ml_npu_clk_freq) / ((float)mtb_ml_cpu_clk_freq);
 #endif
-
+    }
+    mtb_ml_init_state++;
     return result;
 }
 
 cy_rslt_t mtb_ml_deinit(void)
 {
     cy_rslt_t result = MTB_ML_RESULT_SUCCESS;
-
+    if (mtb_ml_init_state == 1)
+    {
 #if defined(COMPONENT_U55)
-    result = mtb_ml_ethosu_deinit();
+        result = mtb_ml_ethosu_deinit();
 #elif defined(COMPONENT_NNLITE2)
-    result = mtb_ml_nnlite_deinit();
+        result = mtb_ml_nnlite_deinit();
 #endif
+    }
+    if (mtb_ml_init_state > 0)
+    {
+        mtb_ml_init_state--;
+    }
     return result;
+}
+
+uint32_t mtb_ml_get_init_state(void)
+{
+    return mtb_ml_init_state;
 }

@@ -6,7 +6,7 @@
 * middleware ethosu module
 *
 *******************************************************************************
-* (c) 2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -35,7 +35,7 @@
 * significant property damage, injury or death ("High Risk Product"). By
 * including Cypress's product in a High Risk Product, the manufacturer of such
 * system or application assumes all risk of such use and in doing so agrees to
-* indemnity Cypress against all liability.
+* indemnify Cypress against all liability.
 *******************************************************************************/
 #include "cy_pdl.h"
 #include "mtb_ml.h"
@@ -55,6 +55,58 @@ struct ethosu_driver ethosu_drv;
 
 /* Populate isr configuration structure */
 cy_stc_sysint_t U55_SCB_IRQ_cfg;
+
+/** Structure to maintain data cache states. */
+typedef struct _cpu_cache_state {
+    uint32_t dcache_invalidated : 1;
+    uint32_t dcache_cleaned : 1;
+} cpu_cache_state;
+
+/** Static CPU cache state object.
+ * @note This logic around flipping these states is based on the driver
+ *       calling the functions in this sequence:
+ *
+ *       Cache flush (ethosu_flush_dcache)
+ *                  \/
+ *       Start inference (ethosu_inference_begin)
+ *                  \/
+ *       Inference (ethosu_dev_run_command_stream)
+ *                  \/
+ *       End inference (ethosu_inference_end)
+ *                  \/
+ *       Cache invalidate (ethosu_dcache_invalidate)
+ **/
+/******************************************************************************
+ * Static variables
+******************************************************************************/
+static cpu_cache_state s_cache_state = {.dcache_cleaned = 0, .dcache_invalidated = 0};
+static uint32_t mtb_ml_cache_mgmt_type = MTB_ML_ETHOSU_CACHE_MGMT_TYPE;
+
+void mtb_ml_set_cache_mgmt_type(uint32_t type)
+{
+    mtb_ml_cache_mgmt_type = type;
+}
+
+uint32_t mtb_ml_get_cache_mgmt_type(void)
+{
+    return mtb_ml_cache_mgmt_type;
+}
+/**
+ * @brief   Gets the current CPU cache state.
+ * @return  Pointer to the CPU cache state object.
+ */
+static cpu_cache_state* ethosu_get_cpu_cache_state(void)
+{
+    return &s_cache_state;
+}
+
+void ethosu_clear_cache_states(void)
+{
+    cpu_cache_state* state = ethosu_get_cpu_cache_state();
+    /* Clearing cache state members */
+    state->dcache_invalidated = 0;
+    state->dcache_cleaned     = 0;
+}
 
 /*******************************************************************************
  * Private Functions
@@ -87,7 +139,7 @@ cy_rslt_t mtb_ml_ethosu_init(struct ethosu_driver *ethosu_drv, uint32_t priority
                 MTB_ML_ETHOSU_SECURITY_ENABLE,
                 MTB_ML_ETHOSU_PRIVILEGE_ENABLE))
     {
-        printf("Failed to initalise Ethos-U55 device\r\n");
+        printf("Failed to initialize Ethos-U55 device\r\n");
         return MTB_ML_RESULT_NPU_INIT_ERROR;
     }
 
@@ -119,8 +171,8 @@ cy_rslt_t mtb_ml_ethosu_deinit()
         /* Disable PMU block */
         ETHOSU_PMU_Disable(mtb_ml_ethosu_driver_handle);
 
+        ethosu_soft_reset(mtb_ml_ethosu_driver_handle);
         ethosu_deinit(mtb_ml_ethosu_driver_handle /* Ethos-U55 driver device pointer */);
-
         Cy_SysEnableU55(false);
 
         mtb_ml_ethosu_driver_handle = NULL;
@@ -173,12 +225,11 @@ void ethosu_inference_end(struct ethosu_driver *drv, void *user_arg)
     ETHOSU_PMU_CNTR_Disable(drv, ETHOSU_PMU_CCNT_Msk);
     if (ETHOSU_PMU_Get_CNTR_OVS(drv) & ETHOSU_PMU_CCNT_Msk)
     {
-        /* DRIVERS-12986: Handle errors */
         mtb_ml_npu_cycles = 0;
     }
     else
     {
-        mtb_ml_npu_cycles = ETHOSU_PMU_Get_CCNTR(drv);
+        mtb_ml_npu_cycles += ETHOSU_PMU_Get_CCNTR(drv);
     }
 }
 
@@ -189,18 +240,57 @@ void ethosu_inference_end(struct ethosu_driver *drv, void *user_arg)
  * \param[in]   p           : Cache address to flush. Passing NULL flushes whole cache
  * \param[in]   bytes       : Amount of bytes to flush at p if non-NULL
  */
-void ethosu_flush_dcache(uint32_t *p, size_t bytes) {
-#if defined(MTB_ML_DISABLE_CACHE_HIDDEN_LAYERS)
-    (void)p;
-    (void)bytes;
-#else
-    if (p != NULL) {
-        SCB_CleanDCache_by_Addr(p, bytes);
+void ethosu_flush_dcache(uint32_t *p, size_t bytes)
+{
+    cpu_cache_state* state;
+    switch(mtb_ml_cache_mgmt_type)
+    {
+        case MTB_ML_ETHOSU_CACHE_MGMT_OUTER_LAYERS:
+            (void)p;
+            (void)bytes;
+            return;
+        /* recommended for smaller models */
+        case MTB_ML_ETHOSU_CACHE_MGMT_ALL_LAYERS:
+            if (p != NULL) {
+                SCB_CleanDCache_by_Addr((void *)p, bytes);
+            }
+            else {
+                SCB_CleanDCache();
+            }
+            return;
+        case MTB_ML_ETHOSU_CACHE_MGMT_CONDITIONAL:
+            state = ethosu_get_cpu_cache_state();
+            if (SCB->CCR & SCB_CCR_DC_Msk) /* D cache is enabled */
+            {    /**
+                 * @note We could choose to call the `SCB_CleanDCache_by_Addr` function
+                 *       here, but the sizes which this function is called for, can
+                 *       cause unnecessary delays. It's worth noting that this function
+                 *       is called from the Arm Ethos-U NPU drive repeatedly for each
+                 *       region it accesses. This could even be RO memory which does
+                 *       not need cache maintenance, along with parts of the input and
+                 *       output tensors which rightly need to be cleaned. Therefore, to
+                 *       reduce overhead of repeated calls for large memory sizes, we
+                 *       call the clean and invalidation functions for whole cache.
+                 *
+                 *       If the neural network to be executed is completely falling
+                 *       onto the NPU, consider disabling the data cache altogether
+                 *       for the duration of the inference to further reduce the cache
+                 *       maintenance burden in these functions.
+                 */
+                /** Clean the cache if it hasn't been cleaned already  */
+                if (!state->dcache_cleaned) {
+                    SCB_CleanDCache();
+
+                    /** Assert the cache cleaned state and clear the invalidation state. */
+                    state->dcache_cleaned     = 1;
+                    state->dcache_invalidated = 0;
+                }
+            }
+            return;
+        default:
+            /* MTB_ML_ETHOSU_CACHE_MGMT_TYPE has incorrect value */
+            CY_ASSERT(0);
     }
-    else {
-        SCB_CleanDCache();
-    }
-#endif
 }
 
 /**
@@ -210,18 +300,46 @@ void ethosu_flush_dcache(uint32_t *p, size_t bytes) {
  * \param[in]   p           : Cache address to invalidate. Passing NULL invalidates whole cache
  * \param[in]   bytes       : Amount of bytes to invalidate at p if non-NULL
  */
-void ethosu_invalidate_dcache(uint32_t *p, size_t bytes) {
-#if defined(MTB_ML_DISABLE_CACHE_HIDDEN_LAYERS)
-    (void)p;
-    (void)bytes;
-#else
-    if (p != NULL) {
-        SCB_InvalidateDCache_by_Addr(p, bytes);
+void ethosu_invalidate_dcache(uint32_t *p, size_t bytes)
+{
+    cpu_cache_state* state;
+    switch(mtb_ml_cache_mgmt_type)
+    {
+        case MTB_ML_ETHOSU_CACHE_MGMT_OUTER_LAYERS:
+            (void)p;
+            (void)bytes;
+            return;
+        /* recommended for smaller models */
+        case MTB_ML_ETHOSU_CACHE_MGMT_ALL_LAYERS:
+            if (p != NULL) {
+                SCB_InvalidateDCache_by_Addr((void *)p, bytes);
+            }
+            else {
+                SCB_InvalidateDCache();
+            }
+            return;
+        case MTB_ML_ETHOSU_CACHE_MGMT_CONDITIONAL:
+            state = ethosu_get_cpu_cache_state();
+            if (SCB->CCR & SCB_CCR_DC_Msk) /* D cache is enabled */
+            {   /**
+                 * See note in ethosu_flush_dcache function for why we clean the whole
+                 * cache instead of calling it for specific addresses.
+                 **/
+                if (!state->dcache_invalidated) {
+                    /* Invalidating data cache */
+                    SCB_CleanInvalidateDCache();
+
+                    /** Assert the cache invalidation state and clear the clean
+                     *  state. */
+                    state->dcache_invalidated = 1;
+                    state->dcache_cleaned     = 0;
+                }
+            }
+            return;
+        default:
+            /* MTB_ML_ETHOSU_CACHE_MGMT_TYPE has incorrect value */
+            CY_ASSERT(0);
     }
-    else {
-        SCB_InvalidateDCache();
-    }
-#endif
 }
 
 #if defined(CY_RTOS_AWARE)
@@ -229,8 +347,10 @@ void ethosu_invalidate_dcache(uint32_t *p, size_t bytes) {
 extern void *mtb_ml_mutex_create(void);
 extern int mtb_ml_mutex_lock(void *mutex);
 extern int mtb_ml_mutex_unlock(void *mutex);
+extern void mtb_ml_mutex_destroy(void *mutex);
 extern void *mtb_ml_sem_create(void);
 extern int mtb_ml_sem_take(void *sem, uint64_t timeout);
+extern void mtb_ml_sem_destroy(void *sem);
 /******************************************************************************
  * Semaphore/Mutex function overrides for Ethos-U NPU
  *
@@ -240,8 +360,10 @@ extern int mtb_ml_sem_take(void *sem, uint64_t timeout);
 void *ethosu_mutex_create(void)         { return mtb_ml_mutex_create(); }
 int ethosu_mutex_lock(void *mutex)     { return mtb_ml_mutex_lock(mutex); }
 int ethosu_mutex_unlock(void *mutex)   { return mtb_ml_mutex_unlock(mutex); }
+void ethosu_mutex_destroy(void *mutex)   { mtb_ml_mutex_destroy(mutex); }
 void *ethosu_semaphore_create(void)     { return mtb_ml_sem_create(); }
 int ethosu_semaphore_take(void *sem, uint64_t timeout)  {return mtb_ml_sem_take(sem, timeout); }
+void ethosu_semaphore_destroy(void *sem) { mtb_ml_sem_destroy(sem); }
 
 /**
  * \brief : Give Ethos-U semaphore using API of RTOS abstraction.

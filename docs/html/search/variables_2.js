@@ -1,6 +1,9 @@
 var searchData=
 [
-  ['call_5ftag',['call_tag',['../structmtb__data__streaming__context__t.html#a975da0b6f38b7784a2a7e6d9f62fc3ca',1,'mtb_data_streaming_context_t']]],
-  ['callback',['callback',['../structmtb__data__streaming__context__t.html#a6511687be8496d68f953e8d75759731c',1,'mtb_data_streaming_context_t']]],
-  ['context',['context',['../structmtb__data__streaming__interface__t.html#aa5c85ecd5033f2f77a03410a215cca33',1,'mtb_data_streaming_interface_t']]]
+  ['input',['input',['../structmtb__ml__model__t.html#acde56bb9009162504b81ef54b501da4c',1,'mtb_ml_model_t']]],
+  ['input_5fscale',['input_scale',['../structmtb__ml__model__t.html#a9f7217c67b3eff7e81a4f7c73ec6531e',1,'mtb_ml_model_t']]],
+  ['input_5fsize',['input_size',['../structmtb__ml__model__t.html#a1797e6ef78400a7367ea7b16c5fbca66',1,'mtb_ml_model_t']]],
+  ['input_5ftype_5fsize',['input_type_size',['../structmtb__ml__model__t.html#a4578d1da2b89a8ad242205d6858c16de',1,'mtb_ml_model_t']]],
+  ['input_5fzero_5fpoint',['input_zero_point',['../structmtb__ml__model__t.html#a50515faa2dc017c101ebe8d12152b327',1,'mtb_ml_model_t']]],
+  ['is_5frnn_5fstreaming',['is_rnn_streaming',['../structmtb__ml__model__t.html#a9c9b1a5f42ba65f46a7e5258e3cc246c',1,'mtb_ml_model_t']]]
 ];

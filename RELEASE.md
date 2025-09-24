@@ -21,14 +21,16 @@ The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 
 ### v3.1.0
 
-* 16-bit fixed-point input
+* Implemented support for PSOC Edge™ capabilities:
+    * Cortex-M33 (CPU-based inference)
+    * NNLite™ NPU integration (Cortex-M33 core only)
+    * EthosU U55 NPU integration (Cortex-M55 core only)
 * Added LSTM models support
-* Streaming fixes and improvements
-* Minor bugfixes
-
-### v3.0.1
-
-* PSOC6 patch release version
+* Implemented NNLite™ NPU RToS integration
+* Implemented EthosU U55 NPU RToS integration
+* Implemented EthosU U55 NPU cycle count profiling
+* MTB-HAL Support added
+* Support of ml-inference obsoleted
 
 ### v2.0.1
 
@@ -48,11 +50,11 @@ This version of the was validated for compatibility with the following Software 
 
 | Software and Tools                        | Version       |
 | :---                                      | :----:        |
-| ML TFLiteU                                | 3.0.1         |
+| ML TFLiteU                                | 3.1.0         |
 | ML Coretools                              | 3.0.0         |
 | GCC Compiler                              | 11.3          |
 | ARM Compiler 6                            | 6.22          |
-| CyBridge                                  | 3.4.0         |
+| LLVM Toolchain                            | 19.1.1        |
 
 Minimum required ModusToolbox™ Software Environment: v3.3
 

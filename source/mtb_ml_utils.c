@@ -6,7 +6,7 @@
 * middleware utility module
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -88,7 +88,6 @@ do { \
     return MTB_ML_RESULT_SUCCESS; \
 } while(0)
 
-#if defined(COMPONENT_ML_INT8x8)
 /* This function converts an array of floating-point to a 8-bits fixed-point integer for TFLiteU. */
 static cy_rslt_t mtb_ml_utils_convert_flt_to_int8(const float* in, int8_t *out, int size, float scale, int zero_point)
 {
@@ -131,7 +130,7 @@ static cy_rslt_t mtb_ml_utils_convert_flt_to_int8(const float* in, int8_t *out, 
 
     return MTB_ML_RESULT_SUCCESS;
 }
-#elif defined(COMPONENT_ML_INT16x8)
+
 /* This function converts an array of floating-point to a 16-bits fixed-point integer for TFLiteU. */
 static cy_rslt_t mtb_ml_utils_convert_flt_to_int16(const float* in, int16_t *out, int size, float scale, int zero_point)
 {
@@ -174,12 +173,12 @@ static cy_rslt_t mtb_ml_utils_convert_flt_to_int16(const float* in, int16_t *out
 
     return MTB_ML_RESULT_SUCCESS;
 }
-#endif
 
 /*******************************************************************************
  * Public Functions
 *******************************************************************************/
-int mtb_ml_utils_find_max(const MTB_ML_DATA_T* in, int size)
+#if defined(COMPONENT_ML_INT8x8) || defined(COMPONENT_ML_INT16x8) || defined(COMPONENT_ML_FLOAT32)
+int mtb_ml_utils_find_max(const MTB_ML_DATA_T * in, int size)
 {
     int loop_count, max_idx = -1;
     MTB_ML_DATA_T val, max_val;
@@ -203,11 +202,63 @@ int mtb_ml_utils_find_max(const MTB_ML_DATA_T* in, int size)
     }
     return max_idx;
 }
+#endif
 
-int mtb_ml_utils_find_max_int32(const int32_t* in, int size)
+
+int mtb_ml_utils_find_max_flt(const float* in, int size)
 {
     int loop_count, max_idx = -1;
-    int32_t val, max_val;
+    float val, max_val;
+
+    if (in != NULL && size > 0)
+    {
+        loop_count = size - 1;
+        max_idx = 0;
+        max_val = *in++;
+
+        while(loop_count > 0)
+        {
+            val = *in++;
+            if (val > max_val)
+            {
+                max_idx = size - loop_count;
+                max_val = val;
+            }
+            loop_count--;
+        }
+    }
+    return max_idx;
+}
+
+int mtb_ml_utils_find_max_int16(const int16_t* in, int size)
+{
+    int loop_count, max_idx = -1;
+    int16_t val, max_val;
+
+    if (in != NULL && size > 0)
+    {
+        loop_count = size - 1;
+        max_idx = 0;
+        max_val = *in++;
+
+        while(loop_count > 0)
+        {
+            val = *in++;
+            if (val > max_val)
+            {
+                max_idx = size - loop_count;
+                max_val = val;
+            }
+            loop_count--;
+        }
+    }
+    return max_idx;
+}
+
+int mtb_ml_utils_find_max_int8(const int8_t* in, int size)
+{
+    int loop_count, max_idx = -1;
+    int8_t val, max_val;
 
     if (in != NULL && size > 0)
     {
@@ -249,18 +300,17 @@ cy_rslt_t mtb_ml_utils_model_quantize(const mtb_ml_model_t *obj, const float* in
     if (obj == NULL || input_data == NULL || quantized_values == NULL) {
         return MTB_ML_RESULT_BAD_ARG;
     }
-
-#if defined(COMPONENT_ML_INT8x8)
     int32_t size = obj->input_size;
     const float *value = input_data;
-    return mtb_ml_utils_convert_flt_to_int8(value, quantized_values, size, obj->input_scale, obj->input_zero_point);
-#elif defined(COMPONENT_ML_INT16x8)
-    int32_t size = obj->input_size;
-    const float *value = input_data;
-    return mtb_ml_utils_convert_flt_to_int16(value, quantized_values, size, obj->input_scale, obj->input_zero_point);
-#else
-    return MTB_ML_RESULT_SUCCESS;
-#endif
+    switch(obj->input_type_size)
+    {
+        case sizeof(int8_t):
+            return mtb_ml_utils_convert_flt_to_int8(value, (int8_t *)quantized_values, size, obj->input_scale, obj->input_zero_point);
+        case sizeof(int16_t):
+            return mtb_ml_utils_convert_flt_to_int16(value, (int16_t *)quantized_values, size, obj->input_scale, obj->input_zero_point);
+        default:
+            return MTB_ML_RESULT_SUCCESS;
+    }
 }
 
 cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequantized_values)
@@ -271,22 +321,30 @@ cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequan
     int size = obj->output_size;
     MTB_ML_DATA_T *value = obj->output;
 
-#if !defined(COMPONENT_ML_FLOAT32)
-    int zero_point = obj->output_zero_point;
-    float scale = obj->output_scale;
-    while ( size > 0 )
+    if (obj->output_type_size != sizeof(float))
     {
-        *dequantized_values++ = ((int) (*value++) - zero_point) * scale;
-        size--;
+        int zero_point = obj->output_zero_point;
+        float scale = obj->output_scale;
+        while ( size > 0 )
+        {
+            if (obj->output_type_size == sizeof(int8_t))
+            {
+                *dequantized_values++ = ((int)(*((int8_t *)value++)) - zero_point) * scale;
+            }
+            else
+            {
+                *dequantized_values++ = ((int)(*((int16_t *)value++)) - zero_point) * scale;
+            }
+            size--;
+        }
+    }
+    else
+    {   /* Copy the value over */
+        while ( size > 0 )
+        {
+            *dequantized_values++ = *((float *)value++);
+            size--;
+        }
     }
     return MTB_ML_RESULT_SUCCESS;
-#else  /* !defined(COMPONENT_ML_FLOAT32) */
-    /* Copy the value over */
-    while ( size > 0 )
-    {
-        *dequantized_values++ = *value++;
-        size--;
-    }
-    return MTB_ML_RESULT_SUCCESS;
-#endif /* !defined(COMPONENT_ML_FLOAT32) */
 }

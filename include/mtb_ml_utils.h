@@ -5,7 +5,7 @@
 * This the header file of ModusToolbox ML middleware utility module
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -70,28 +70,51 @@ extern "C" {
  * \addtogroup Utils_API
  * @{
  */
-
 /**
  * \brief : This function finds the maximum value in an array and return its index.
+ *          Will only be used if MTB_ML_DATA_T is defined to int8/int16/float.
+ *          Left for BWC reasons.
  *
  * \param[in]   in          : Pointer of the array
  * \param[in]   size        : size of the array
  *
  * \return                  : The index of maximum value
- *                          : -1 if input paramter is invalid.
+ *                          : -1 if input parameter is invalid.
  */
 int mtb_ml_utils_find_max(const MTB_ML_DATA_T* in, int size);
 
 /**
- * \brief : This function finds the maximum value in an int32_t array and return its index.
+ * \brief : This function finds the maximum value in an float array and return its index.
  *
  * \param[in]   in          : Pointer of the array
  * \param[in]   size        : size of the array
  *
  * \return                  : The index of maximum value
- *                          : -1 if input paramter is invalid.
+ *                          : -1 if input parameter is invalid.
  */
-int mtb_ml_utils_find_max_int32(const int32_t* in, int size);
+int mtb_ml_utils_find_max_flt(const float* in, int size);
+
+/**
+ * \brief : This function finds the maximum value in an int16_t array and return its index.
+ *
+ * \param[in]   in          : Pointer of the array
+ * \param[in]   size        : size of the array
+ *
+ * \return                  : The index of maximum value
+ *                          : -1 if input parameter is invalid.
+ */
+int mtb_ml_utils_find_max_int16(const int16_t* in, int size);
+
+/**
+ * \brief : This function finds the maximum value in an int8_t array and return its index.
+ *
+ * \param[in]   in          : Pointer of the array
+ * \param[in]   size        : size of the array
+ *
+ * \return                  : The index of maximum value
+ *                          : -1 if input parameter is invalid.
+ */
+int mtb_ml_utils_find_max_int8(const int8_t* in, int size);
 
 /**
  * \brief : Print detailed model info
@@ -99,7 +122,7 @@ int mtb_ml_utils_find_max_int32(const int32_t* in, int size);
  * \param[in] obj        : Pointer of model object.
  *
  * \return               : MTB_ML_RESULT_SUCCESS - success
- *                       : MTB_ML_RESULT_BAD_ARG - if input paramter is invalid.
+ *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
  */
 cy_rslt_t mtb_ml_utils_print_model_info(const mtb_ml_model_t *obj);
 
@@ -124,7 +147,7 @@ cy_rslt_t mtb_ml_utils_model_quantize(const mtb_ml_model_t *obj, const float* in
  * \param[out] dequantized_values : pointer of dequantized_values
  *
  * \return               : MTB_ML_RESULT_SUCCESS - success
- *                       : MTB_ML_RESULT_BAD_ARG - if input paramter is invalid.
+ *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
  */
 cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequantized_values);
 

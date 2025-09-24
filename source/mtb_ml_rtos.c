@@ -6,7 +6,7 @@
 *
 *
 *******************************************************************************
-* (c) 2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -62,14 +62,12 @@ void *mtb_ml_mutex_create(void)
     mutex = (cy_mutex_t *)malloc(sizeof(cy_mutex_t));
     if(mutex == NULL)
     {
-        /* DRIVERS-12986: Handle errors */
         return NULL;
     }
 
     cy_rslt_t res = cy_rtos_init_mutex2(mutex, false);
     if (res != CY_RSLT_SUCCESS) {
         free(mutex);
-        /* DRIVERS-12986: Handle errors */
     }
 
     return (void *)mutex;
@@ -85,7 +83,6 @@ int mtb_ml_mutex_lock(void *mutex)
     cy_mutex_t *handle = (cy_mutex_t *)mutex;
     cy_rslt_t res = cy_rtos_get_mutex(handle, ML_NPU_MUTEX_TIMEOUT);
 
-    /* DRIVERS-12986: Handle errors */
     return res;
 }
 
@@ -99,8 +96,23 @@ int mtb_ml_mutex_unlock(void *mutex)
     cy_mutex_t *handle = (cy_mutex_t *)mutex;
     cy_rslt_t res = cy_rtos_set_mutex(handle);
 
-    /* DRIVERS-12986: Handle errors*/
     return res;
+}
+
+/**
+ * \brief : Destroy mutex and free allocated memory.
+ *
+ * \param[in]   mutex  : mutex handle to be destroyed
+ */
+void mtb_ml_mutex_destroy(void *mutex)
+{
+    if (mutex != NULL)
+    {
+        if (cy_rtos_deinit_mutex(mutex) == CY_RSLT_SUCCESS)
+        {
+            free(mutex);
+        }
+    }
 }
 
 /**
@@ -114,13 +126,11 @@ void *mtb_ml_sem_create(void)
     sem = (cy_semaphore_t *)malloc(sizeof(cy_semaphore_t));
     if(sem == NULL)
     {
-        /* DRIVERS-12986: Handle errors */
         return NULL;
     }
     cy_rslt_t res = cy_rtos_init_semaphore(sem, configNPU_COUNT, 0);
     if (res != CY_RSLT_SUCCESS) {
         free(sem);
-        /* DRIVERS-12986: Handle errors */
     }
 
     return (void *)sem;
@@ -147,8 +157,23 @@ int mtb_ml_sem_take(void *sem, uint64_t timeout)
         res = cy_rtos_get_semaphore(handle, timeout, false);
     }
 
-    /* DRIVERS-12986: Handle errors*/
     return res;
+}
+
+/**
+ * \brief : Semaphore destroy (freeing memory) using API of RTOS abstraction.
+ *
+ * \param[in]   sem  : semaphore handle to be unlocked
+ */
+void mtb_ml_sem_destroy(void *sem)
+{
+    if (sem != NULL)
+    {
+        if (cy_rtos_deinit_semaphore(sem) == CY_RSLT_SUCCESS)
+        {
+            free(sem);
+        }
+    }
 }
 
 #endif /* COMPONENT_U55 || COMPONENT_NNLITE2 */

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['stream_5fapi',['Stream_API',['../group__Stream__API.html',1,'']]]
+  ['utils_5fapi',['Utils_API',['../group__Utils__API.html',1,'']]]
 ];

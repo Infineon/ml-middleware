@@ -199,6 +199,10 @@ extern void vApplicationSleep( uint32_t xExpectedIdleTime );
  * FreeRTOS's configUSE_NEWLIB_REENTRANT to work with the toolchain-specific C library.
  * The compatible implementations are also provided by the clib-support library.
  */
+#if defined(__llvm__) && !defined(__ARMCC_VERSION)
+#define configUSE_PICOLIBC_TLS                  1
+#else
 #define configUSE_NEWLIB_REENTRANT              1
+#endif /* #if defined(__llvm__) && !defined(__ARMCC_VERSION) */
 
 #endif /* FREERTOS_CONFIG_H */

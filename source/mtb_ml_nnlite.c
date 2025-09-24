@@ -6,7 +6,7 @@
 *
 *
 *******************************************************************************
-* (c) 2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -51,6 +51,14 @@
 #endif
 
 cy_kernel_config_t cy_kernel_config = {0};
+
+__WEAK void Cy_NNLite_Lpm_Lock(void) {
+    /* To be substituted at application level */
+}
+
+__WEAK void Cy_NNLite_Lpm_Unlock(void) {
+    /* To be substituted at application level */
+}
 
 /*******************************************************************************
  * Private Functions
@@ -280,7 +288,7 @@ uint32_t Cy_NNLite_Sem_Delete(void *sem)
 #endif  /* defined(CY_RTOS_AWARE) */
 
 /* NNLite NPU-related cycles count */
-static uint64 mtb_ml_nnlite_frame_start;
+static uint64_t mtb_ml_nnlite_frame_start;
 extern uint64_t mtb_ml_npu_cycles;
 
 void mtb_ml_nnlite_nop(void *ptr) {
@@ -291,7 +299,7 @@ void mtb_ml_nnlite_nop(void *ptr) {
 void mtb_ml_nnlite_prof_get(void *ptr, uint32_t profilePoint)
 {
   (void)ptr;
-  uint64 nnlite_prof_tmp;
+  uint64_t nnlite_prof_tmp;
   /* pre-Start() */
   if (profilePoint == CY_NNLITE_PP_ACCELERATOR_START)
   {
@@ -331,8 +339,8 @@ cy_rslt_t mtb_ml_nnlite_init(uint32_t priority)
     cy_kernel_config.SemDeleteFunc      = Cy_NNLite_Sem_Delete;
     cy_kernel_config.SemWaitFunc        = Cy_NNLite_Sem_Wait;
     cy_kernel_config.SemGiveFunc        = Cy_NNLite_Sem_Give;
-    cy_kernel_config.LpmLockFunc        = NULL;
-    cy_kernel_config.LpmUnlockFunc      = NULL;
+    cy_kernel_config.LpmLockFunc        = Cy_NNLite_Lpm_Lock;
+    cy_kernel_config.LpmUnlockFunc      = Cy_NNLite_Lpm_Unlock;
     cy_kernel_config.profStart          = mtb_ml_nnlite_nop;
     cy_kernel_config.profStop           = mtb_ml_nnlite_nop;
     cy_kernel_config.profGetCount       = mtb_ml_nnlite_prof_get;

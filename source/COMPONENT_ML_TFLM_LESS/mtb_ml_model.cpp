@@ -7,7 +7,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -60,34 +60,34 @@ int __attribute__((weak)) mtb_ml_model_profile_get_tsc(uint64_t *val)
 extern "C" {
 #endif  // __cplusplus
 
-static int input_elements(tflm_rmf_apis_t *rmf_api)
+static int input_elements(tflm_rmf_apis_t *rmf_api, int index)
 {
     int count = 1;
-    for (int i = 0; i < rmf_api->model_input_dims_len(0); ++i)
+    for (int i = 0; i < rmf_api->model_input_dims_len(index); ++i)
     {
-        count *= rmf_api->model_input_dims(0)[i];
+        count *= rmf_api->model_input_dims(index)[i];
     }
     return count;
 }
 
-static int output_elements(tflm_rmf_apis_t *rmf_api)
+static int output_elements(tflm_rmf_apis_t *rmf_api, int index)
 {
     int count = 1;
-    for (int i = 0; i < rmf_api->model_output_dims_len(0); ++i)
+    for (int i = 0; i < rmf_api->model_output_dims_len(index); ++i)
     {
-        count *= rmf_api->model_output_dims(0)[i];
+        count *= rmf_api->model_output_dims(index)[i];
     }
     return count;
 }
 
-static MTB_ML_DATA_T * input_ptr(tflm_rmf_apis_t *rmf_api)
+static MTB_ML_DATA_T * input_ptr(tflm_rmf_apis_t *rmf_api, int index)
 {
-    return (MTB_ML_DATA_T *) rmf_api->model_input_ptr(0);
+    return (MTB_ML_DATA_T *) rmf_api->model_input_ptr(index);
 }
 
-static MTB_ML_DATA_T * output_ptr(tflm_rmf_apis_t *rmf_api)
+static MTB_ML_DATA_T * output_ptr(tflm_rmf_apis_t *rmf_api, int index)
 {
-    return (MTB_ML_DATA_T *) rmf_api->model_output_ptr(0);
+    return (MTB_ML_DATA_T *) rmf_api->model_output_ptr(index);
 }
 
 /*******************************************************************************
@@ -133,16 +133,44 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
 
     /* Get model parameters */
     /* Input parameters */
-    model_object->input = input_ptr(rmf_api);
-    model_object->input_size = input_elements(rmf_api);
+    model_object->input = input_ptr(rmf_api, 0);
+    model_object->input_size = input_elements(rmf_api, 0);
     model_object->input_zero_point = rmf_api->model_input(0)->params.zero_point;
     model_object->input_scale = rmf_api->model_input(0)->params.scale;
     model_object->model_time_steps = rmf_api->model_input(0)->dims->data[1];
     /* Output parameters*/
-    model_object->output_size = output_elements(rmf_api);
-    model_object->output = output_ptr(rmf_api);
+    model_object->output = output_ptr(rmf_api, 0);
+    model_object->output_size = output_elements(rmf_api, 0);
     model_object->output_zero_point = rmf_api->model_output(0)->params.zero_point;
     model_object->output_scale = rmf_api->model_output(0)->params.scale;
+
+    switch (rmf_api->model_input(0)->type) {
+    case kTfLiteInt8:
+        model_object->input_type_size = sizeof(int8_t);
+        break;
+    case kTfLiteInt16:
+        model_object->input_type_size = sizeof(int16_t);
+        break;
+    case kTfLiteFloat32:
+        model_object->input_type_size = sizeof(float);
+        break;
+    default:
+        return MTB_ML_RESULT_MISMATCH_DATA_TYPE;
+    }
+
+    switch (rmf_api->model_output(0)->type) {
+    case kTfLiteInt8:
+        model_object->output_type_size = sizeof(int8_t);
+        break;
+    case kTfLiteInt16:
+        model_object->output_type_size = sizeof(int16_t);
+        break;
+    case kTfLiteFloat32:
+        model_object->output_type_size = sizeof(float);
+        break;
+    default:
+        return MTB_ML_RESULT_MISMATCH_DATA_TYPE;
+    }
 
     *object = model_object;
     return MTB_ML_RESULT_SUCCESS;
@@ -175,7 +203,7 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
     for (size_t i = 0; i < rmf_api->model_inputs(); ++i)
     {
         memcpy(rmf_api->model_input_ptr(i), input, rmf_api->model_input_size(i));
-        input += rmf_api->model_input_size(i) / sizeof(MTB_ML_DATA_T);
+        input += rmf_api->model_input_size(i) / object->input_type_size;
     }
 
     /* Model profiling */
@@ -224,6 +252,7 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
             object->m_cpu_peak_cycles = cpu_cycles_only;
             object->m_cpu_peak_frame = object->m_sum_frames;
         }
+        object->m_cpu_cycles = cpu_cycles_only;
         object->m_cpu_sum_cycles += cpu_cycles_only;
         object->m_sum_frames++;
     }
@@ -235,10 +264,29 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
        * as the header file is currently unable to be included due to conflicts.
        */
        printf(" output:");
-       for (int j = 0; j < object->output_size; j++)
-       {
-           printf("%6.3f ", (float) (output_ptr[j]));
-       }
+       switch (object->output_type_size)
+        {
+            case sizeof(float):
+                for (int j = 0; j < object->output_size; j++)
+                {
+                    printf("%6.3f ", (float) (((float*)output_ptr)[j]));
+                }
+                break;
+            case sizeof(int16_t):
+                for (int j = 0; j < object->output_size; j++)
+                {
+                    printf("%6.3f ", (float) (((int16_t*)output_ptr)[j]));
+                }
+                break;
+            case sizeof(int8_t):
+                for (int j = 0; j < object->output_size; j++)
+                {
+                    printf("%6.3f ", (float) (((int8_t*)output_ptr)[j]));
+                }
+                break;
+            default:
+                return MTB_ML_RESULT_MISMATCH_DATA_TYPE;
+        }
        printf("\r\n");
     }
 
@@ -261,6 +309,56 @@ cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **
     if (size_ptr != NULL)
     {
         *size_ptr = object->output_size;
+    }
+
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_get_output_detail(const mtb_ml_model_t *object, int index, MTB_ML_DATA_T **out_pptr, size_t* size_ptr,
+    int** dim_ptr, int* dim_len_ptr, int* zero_ptr, float* scale_ptr)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL || size_ptr == NULL || out_pptr == NULL || zero_ptr == NULL || scale_ptr == NULL || dim_len_ptr == NULL || dim_ptr == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    tflm_rmf_apis_t * rmf_api = (tflm_rmf_apis_t *) object->tflm_obj;
+
+    *size_ptr	 = output_elements(rmf_api, index);
+    *out_pptr	 = output_ptr(rmf_api, index);
+    *zero_ptr 	 = rmf_api->model_output(index)->params.zero_point;
+    *scale_ptr 	 = rmf_api->model_output(index)->params.scale;
+    *dim_len_ptr = rmf_api->model_output_dims_len(index);
+
+    TfLiteIntArray* dims = rmf_api->model_output(index)->dims;
+    for (int i = 0; i < dims->size; ++i) {
+        (*dim_ptr)[i] = dims->data[i];
+    }
+
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_get_input_detail(const mtb_ml_model_t *object, int index, MTB_ML_DATA_T **in_pptr, size_t* size_ptr,
+    int** dim_ptr, int* dim_len_ptr, int* zero_ptr, float* scale_ptr)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL || size_ptr == NULL || in_pptr == NULL || zero_ptr == NULL || scale_ptr == NULL || dim_len_ptr == NULL || dim_ptr == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    tflm_rmf_apis_t * rmf_api = (tflm_rmf_apis_t *) object->tflm_obj;
+
+    *size_ptr	 = input_elements(rmf_api, index);
+    *in_pptr	 = input_ptr(rmf_api, index);
+    *zero_ptr 	 = rmf_api->model_input(index)->params.zero_point;
+    *scale_ptr 	 = rmf_api->model_input(index)->params.scale;
+    *dim_len_ptr = rmf_api->model_input_dims_len(index);
+
+    TfLiteIntArray* dims = rmf_api->model_input(index)->dims;
+    for (int i = 0; i < dims->size; ++i) {
+        (*dim_ptr)[i] = dims->data[i];
     }
 
     return MTB_ML_RESULT_SUCCESS;

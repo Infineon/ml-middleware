@@ -1,7 +1,6 @@
 var searchData=
 [
-  ['receive',['receive',['../structmtb__data__streaming__interface__t.html#a749163a97daa2a05d3f13f2580a52131',1,'mtb_data_streaming_interface_t']]],
-  ['recurrent_5fts_5fsize',['recurrent_ts_size',['../structmtb__ml__model__t.html#a9d04dc0be45f24f84d80492b19e6f14d',1,'mtb_ml_model_t']]],
-  ['rmf_5fapis',['rmf_apis',['../structmtb__ml__model__t.html#a1df66bac95f1f3d97b18b8cb2e2a5b59',1,'mtb_ml_model_t']]],
-  ['rmf_5fbin',['rmf_bin',['../structmtb__ml__model__bin__t.html#af7c28166d5a33d7b9cfae009bd3f02ac',1,'mtb_ml_model_bin_t']]]
+  ['tensor_5farena',['tensor_arena',['../structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa',1,'mtb_ml_model_buffer_t']]],
+  ['tensor_5farena_5fsize',['tensor_arena_size',['../structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90',1,'mtb_ml_model_buffer_t']]],
+  ['tflm_5fobj',['tflm_obj',['../structmtb__ml__model__t.html#a573f9afd5b34a5e6f528594fbb1973c2',1,'mtb_ml_model_t']]]
 ];

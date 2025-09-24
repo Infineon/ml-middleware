@@ -1,8 +1,6 @@
 var searchData=
 [
-  ['send',['send',['../structmtb__data__streaming__interface__t.html#ad4efc5acd001af521ede7388652469d3',1,'mtb_data_streaming_interface_t']]],
-  ['stream_5fapi',['Stream_API',['../group__Stream__API.html',1,'']]],
-  ['stream_5fdone',['stream_done',['../structmtb__ml__stream__tag__t.html#a57b693cb3ba2b0a52c21d7f5e5fdd9bb',1,'mtb_ml_stream_tag_t']]],
-  ['stream_5fstatus',['stream_status',['../structmtb__ml__stream__tag__t.html#a96cb4e02e3dd9bee010b3d7c9c544d5b',1,'mtb_ml_stream_tag_t']]],
-  ['stream_5ftag',['stream_tag',['../structmtb__ml__stream__interface__t.html#af22b7b6789bfa50e261dc985787b15b7',1,'mtb_ml_stream_interface_t']]]
+  ['tensor_5farena',['tensor_arena',['../structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa',1,'mtb_ml_model_buffer_t']]],
+  ['tensor_5farena_5fsize',['tensor_arena_size',['../structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90',1,'mtb_ml_model_buffer_t']]],
+  ['tflm_5fobj',['tflm_obj',['../structmtb__ml__model__t.html#a573f9afd5b34a5e6f528594fbb1973c2',1,'mtb_ml_model_t']]]
 ];

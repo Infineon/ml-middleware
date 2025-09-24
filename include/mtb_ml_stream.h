@@ -5,7 +5,7 @@
 * This file contains interface for MTB ML streaming feature
 *
 *******************************************************************************
-* (c) 2019-2024, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -38,6 +38,8 @@
 *******************************************************************************/
 #if !defined(__MTB_ML_STREAM_H__)
 #define __MTB_ML_STREAM_H__
+
+#ifdef COMPONENT_ML_MW_STREAM
 
 #include "mtb_ml_model.h"
 #include "mtb_ml_dataset.h"
@@ -227,5 +229,7 @@ void mtb_ml_stream_cb(void* tag, cy_rslt_t rslt);
 #if defined(__cplusplus)
 }
 #endif
+
+#endif /* COMPONENT_ML_MW_STREAM */
 
 #endif /* __MTB_ML_STREAM_H__ */
