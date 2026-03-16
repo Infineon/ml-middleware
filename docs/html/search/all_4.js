@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['lib_5ferror',['lib_error',['../structmtb__ml__model__t.html#aecc39e5f86840176fb334bdefb9dcd89',1,'mtb_ml_model_t']]]
+  ['elements_8',['elements',['../structmtb__ml__tensor__desc.html#a6c4e92edcfaa46a520c4d7ff8d74774c',1,'mtb_ml_tensor_desc']]]
 ];

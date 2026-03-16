@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['name',['name',['../structmtb__ml__model__bin__t.html#a324d329f7e08cf29e6b3f4dd6905dae4',1,'mtb_ml_model_bin_t::name()'],['../structmtb__ml__model__t.html#a324d329f7e08cf29e6b3f4dd6905dae4',1,'mtb_ml_model_t::name()']]]
+  ['lib_5ferror_18',['lib_error',['../structmtb__ml__model__t.html#aecc39e5f86840176fb334bdefb9dcd89',1,'mtb_ml_model_t']]]
 ];

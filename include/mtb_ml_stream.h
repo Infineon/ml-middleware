@@ -5,7 +5,7 @@
 * This file contains interface for MTB ML streaming feature
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -150,9 +150,11 @@ typedef struct
 {
     mtb_data_streaming_interface_t *interface_obj;  /**< Stream interface object */
     mtb_ml_stream_tag_t *stream_tag;                /**< Tag that tracks status of stream */
-    mtb_ml_x_file_header_t x_data_info;             /**< x data info retrieved from host */
+    mtb_ml_x_file_header_t x_data_info;             /**< x data info retrieved from host (input_size in elements) */
     size_t input_size;                              /**< Size of input data buffer, set to model object input size */
     size_t output_size;                             /**< Size of output data buffer, set to model object output size */
+    size_t input_data_size;                         /**< Size of input data buffer, set to model object input size */
+    size_t output_data_size;                        /**< Size of output data buffer, set to model object output size */
 } mtb_ml_stream_interface_t;
 
 /*******************************************************************************

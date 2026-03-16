@@ -7,7 +7,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -137,12 +137,85 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
     model_object->input_size = input_elements(rmf_api, 0);
     model_object->input_zero_point = rmf_api->model_input(0)->params.zero_point;
     model_object->input_scale = rmf_api->model_input(0)->params.scale;
-    model_object->model_time_steps = rmf_api->model_input(0)->dims->data[1];
     /* Output parameters*/
     model_object->output = output_ptr(rmf_api, 0);
     model_object->output_size = output_elements(rmf_api, 0);
     model_object->output_zero_point = rmf_api->model_output(0)->params.zero_point;
     model_object->output_scale = rmf_api->model_output(0)->params.scale;
+
+    /* Multi-tensor fields */
+    model_object->input_count = rmf_api->model_inputs();
+    model_object->output_count = rmf_api->model_outputs();
+
+    /* Calculate time steps for multi-input models */
+    model_object->model_time_steps = rmf_api->model_input(0)->dims->data[1];
+    for (int i = 0; i < model_object->input_count; ++i) {
+        if (rmf_api->model_input(i)->dims->size > 2) {
+            model_object->model_time_steps = rmf_api->model_input(i)->dims->data[1];
+            break;
+        }
+    }
+
+    /* Calculate concatenated sizes */
+    model_object->input_concat_bytes = 0;
+    for (int i = 0; i < model_object->input_count; ++i) {
+        model_object->input_concat_bytes += rmf_api->model_input_size(i);
+    }
+    model_object->output_concat_bytes = 0;
+    for (int i = 0; i < model_object->output_count; ++i) {
+        model_object->output_concat_bytes += rmf_api->model_output_size(i);
+    }
+
+    if (model_object->input_count > 0) {
+        model_object->inputs = (mtb_ml_tensor_desc_t*)calloc(model_object->input_count, sizeof(mtb_ml_tensor_desc_t));
+        if (model_object->inputs == NULL) {
+            free(model_object);
+            return MTB_ML_RESULT_ALLOC_ERR;
+        }
+        int concat_offset = 0;
+        for (int i = 0; i < model_object->input_count; ++i) {
+            const TfLiteTensor* t = rmf_api->model_input(i);
+            model_object->inputs[i].ptr = (MTB_ML_DATA_T*)rmf_api->model_input_ptr(i);
+            model_object->inputs[i].bytes = rmf_api->model_input_size(i);
+            model_object->inputs[i].elements = input_elements(rmf_api, i);
+            model_object->inputs[i].dim_len = rmf_api->model_input_dims_len(i);
+            model_object->inputs[i].dims = rmf_api->model_input_dims(i);
+            model_object->inputs[i].zero_point = t->params.zero_point;
+            model_object->inputs[i].scale = t->params.scale;
+            model_object->inputs[i].concat_offset_bytes = concat_offset;
+            model_object->inputs[i].type_size =
+                (t->type == kTfLiteInt8) ? sizeof(int8_t) :
+                (t->type == kTfLiteInt16) ? sizeof(int16_t) :
+                (t->type == kTfLiteFloat32) ? sizeof(float) : 0;
+            concat_offset += model_object->inputs[i].bytes;
+        }
+    }
+
+    if (model_object->output_count > 0) {
+        model_object->outputs = (mtb_ml_tensor_desc_t*)calloc(model_object->output_count, sizeof(mtb_ml_tensor_desc_t));
+        if (model_object->outputs == NULL) {
+            free(model_object->inputs);
+            free(model_object);
+            return MTB_ML_RESULT_ALLOC_ERR;
+        }
+        int concat_offset = 0;
+        for (int i = 0; i < model_object->output_count; ++i) {
+            const TfLiteTensor* t = rmf_api->model_output(i);
+            model_object->outputs[i].ptr = (MTB_ML_DATA_T*)rmf_api->model_output_ptr(i);
+            model_object->outputs[i].bytes = rmf_api->model_output_size(i);
+            model_object->outputs[i].elements = output_elements(rmf_api, i);
+            model_object->outputs[i].dim_len = rmf_api->model_output_dims_len(i);
+            model_object->outputs[i].dims = rmf_api->model_output_dims(i);
+            model_object->outputs[i].zero_point = t->params.zero_point;
+            model_object->outputs[i].scale = t->params.scale;
+            model_object->outputs[i].concat_offset_bytes = concat_offset;
+            model_object->outputs[i].type_size =
+                (t->type == kTfLiteInt8) ? sizeof(int8_t) :
+                (t->type == kTfLiteInt16) ? sizeof(int16_t) :
+                (t->type == kTfLiteFloat32) ? sizeof(float) : 0;
+            concat_offset += model_object->outputs[i].bytes;
+        }
+    }
 
     switch (rmf_api->model_input(0)->type) {
     case kTfLiteInt8:
@@ -183,28 +256,47 @@ cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object)
     {
         return MTB_ML_RESULT_BAD_ARG;
     }
+
+    free(object->inputs);
+    free(object->outputs);
     free(object);
 
     return MTB_ML_RESULT_SUCCESS;
 }
 
-cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
+cy_rslt_t mtb_ml_model_inputs(const mtb_ml_model_t *object, MTB_ML_DATA_T *input_ptr, int input_index)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    /* Validate input_index is within range */
+    if (input_index < 0 || input_index >= object->input_count)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    /* Ensure source data exists */
+    if (input_ptr != NULL)
+    {
+        tflm_rmf_apis_t *rmf_api = (tflm_rmf_apis_t *) object->tflm_obj;
+        memcpy(rmf_api->model_input_ptr(input_index), input_ptr, rmf_api->model_input_size(input_index));
+    }
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_invoke(mtb_ml_model_t *object)
 {
     TfLiteStatus ret;
     /* Sanity check of input parameters */
-    if (object == NULL || input == NULL)
+    if (object == NULL)
     {
         return MTB_ML_RESULT_BAD_ARG;
     }
 
     tflm_rmf_apis_t *rmf_api = (tflm_rmf_apis_t *) object->tflm_obj;
-
-    /* Set input data */
-    for (size_t i = 0; i < rmf_api->model_inputs(); ++i)
-    {
-        memcpy(rmf_api->model_input_ptr(i), input, rmf_api->model_input_size(i));
-        input += rmf_api->model_input_size(i) / object->input_type_size;
-    }
 
     /* Model profiling */
     if (object->profiling & MTB_ML_PROFILE_ENABLE_MODEL)
@@ -293,7 +385,28 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
     return MTB_ML_RESULT_SUCCESS;
 }
 
-cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int *size_ptr)
+cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
+{
+    cy_rslt_t result;
+
+    /* Sanity check of input parameters */
+    if (object == NULL || input == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    /* Set input data for single-input model */
+    result = mtb_ml_model_inputs(object, input, 0);
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Invoke the model */
+    return mtb_ml_model_invoke(object);
+}
+
+cy_rslt_t mtb_ml_model_get_output_tensor(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int *size_ptr, int output_index)
 {
     /* Sanity check of input parameters */
     if (object == NULL)
@@ -301,16 +414,45 @@ cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **
         return MTB_ML_RESULT_BAD_ARG;
     }
 
+    /* Validate output_index is within range */
+    if (output_index < 0 || output_index >= object->output_count)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
     if (output_pptr != NULL)
     {
-        *output_pptr = object->output;
+        *output_pptr = object->outputs[output_index].ptr;
     }
 
     if (size_ptr != NULL)
     {
-        *size_ptr = object->output_size;
+        *size_ptr = object->outputs[output_index].elements;
     }
 
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int *size_ptr)
+{
+    /* Call mtb_ml_model_get_output_tensor with output_index=0 for backward compatibility */
+    return mtb_ml_model_get_output_tensor(object, output_pptr, size_ptr, 0);
+}
+
+cy_rslt_t mtb_ml_model_load_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL || output_pptr == NULL || *output_pptr == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+    /* Iterate through all output tensors and concatenate them into the provided buffer */
+    for (int i = 0; i < object->output_count; ++i)
+    {
+        const mtb_ml_tensor_desc_t *tensor = &object->outputs[i];
+        uint8_t *dest = (uint8_t*)(*output_pptr) + tensor->concat_offset_bytes;
+        memcpy(dest, tensor->ptr, tensor->bytes);
+    }
     return MTB_ML_RESULT_SUCCESS;
 }
 

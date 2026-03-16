@@ -5,7 +5,7 @@
 * This is the header file of ModusToolbox ML middleware NN model module.
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -83,6 +83,26 @@ typedef struct
 } mtb_ml_model_buffer_t;
 
 /**
+ * ML tensor descriptor structure for multi-input/output models
+ */
+typedef struct mtb_ml_tensor_desc {
+/** @name Multi-tensor descriptor fields
+ *  Descriptor for individual tensors in multi-input/output models.
+ */
+///@{
+    MTB_ML_DATA_T* ptr;                 /**< Pointer to tensor data buffer */
+    size_t bytes;                       /**< Size of tensor in bytes */
+    size_t elements;                    /**< Total number of elements in tensor */
+    int dim_len;                        /**< Number of dimensions */
+    int* dims;                          /**< Pointer to array of dimension sizes */
+    int zero_point;                     /**< Quantization zero point */
+    float scale;                        /**< Quantization scale factor */
+    int concat_offset_bytes;            /**< Offset in bytes within concatenated buffer */
+    uint8_t type_size;                  /**< Size of individual element in bytes */
+///@}
+} mtb_ml_tensor_desc_t;
+
+/**
  * ML model structure
  */
 typedef struct
@@ -124,7 +144,7 @@ typedef struct
 /**@{*/
     char name[MTB_ML_MODEL_NAME_LEN];   /**< the name of ML model */
     int model_size;                     /**< the size of ML model */
-    int buffer_size;                    /**<the size of ML model working buffer */
+    int buffer_size;                    /**< the size of ML model working buffer */
     int input_size;                     /**< array size of input data */
     int output_size;                    /**< array size of output data */
     int lib_error;                      /**< error code from ML inference library */
@@ -133,12 +153,18 @@ typedef struct
     int input_type_size;                /**< sizeof(input data) */
     int output_type_size;               /**< sizeof(output data) */
     void *tflm_obj;                     /**< pointer of Tflite-micro runtime object */
-    int model_time_steps;               /*< number of model time steps */
+    int model_time_steps;               /**< number of model time steps */
     int recurrent_ts_size;              /**< number of data time steps in NN. 0 if non streaming RNN */
     int input_zero_point;               /**< zero point of input data */
     float input_scale;                  /**< scale of input data*/
     int output_zero_point;              /**< zero point of output data */
     float output_scale;                 /**< scale of output data */
+    int input_count;                    /**< number of input tensors in multi-input models */
+    int output_count;                   /**< number of output tensors in multi-output models */
+    size_t input_concat_bytes;          /**< total size in bytes of all input tensors concatenated */
+    size_t output_concat_bytes;         /**< total size in bytes of all output tensors concatenated */
+    mtb_ml_tensor_desc_t* inputs;       /**< pointer to array of input tensor descriptors (size: input_count) */
+    mtb_ml_tensor_desc_t* outputs;      /**< pointer to array of output tensor descriptors (size: output_count) */
     mtb_ml_profile_config_t profiling;  /**< flags of profiling */
     uint64_t m_cpu_cycles;              /**< CPU profiling cycles */
     uint32_t m_sum_frames;              /**< profiling frames */
@@ -211,7 +237,41 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
 cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object);
 
 /**
- * \brief : Perform NN model inference
+ * \brief : Set input data for a specific input tensor of the NN model
+ *
+ * For models with multiple inputs, this function must be called for each input tensor
+ * before calling mtb_ml_model_run(). For single-input models, call once with input_index=0.
+ *
+ * \param[in] object        : Pointer of model object.
+ * \param[in] input         : Pointer of input data buffer for the specified tensor
+ * \param[in] input_index   : Index of the input tensor (0 to input_count-1)
+ *
+ * \return                  : MTB_ML_RESULT_SUCCESS - success
+ *                          : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid or input_index is out of range.
+ */
+cy_rslt_t mtb_ml_model_inputs(const mtb_ml_model_t *object, MTB_ML_DATA_T *input, int input_index);
+
+/**
+ * \brief : Perform NN model inference (low-level function)
+ *
+ * This function performs model inference without handling input data.
+ * All input tensors must be set using mtb_ml_model_inputs() before calling this function.
+ * For single-input models, consider using mtb_ml_model_run() instead.
+ *
+ * \param[in] object     : Pointer of model object.
+ *
+ * \return               : MTB_ML_RESULT_SUCCESS - success
+ *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
+ *                       : MTB_ML_RESULT_INFERENCE_ERROR - if inference failure
+ */
+cy_rslt_t mtb_ml_model_invoke(mtb_ml_model_t *object);
+
+/**
+ * \brief : Perform NN model inference (convenience wrapper for single-input models)
+ *
+ * This is a convenience function for single-input models that combines setting the input
+ * and invoking the model. For multi-input models, use mtb_ml_model_inputs() followed by
+ * mtb_ml_model_invoke().
  *
  * \param[in] object     : Pointer of model object.
  * \param[in] input      : Pointer of input data buffer
@@ -250,7 +310,26 @@ int mtb_ml_model_get_input_size(const mtb_ml_model_t *object);
 cy_rslt_t mtb_ml_model_get_input_detail(const mtb_ml_model_t *object, int index, MTB_ML_DATA_T **in_pptr, size_t* size_ptr,
                                         int** dim_ptr, int* dim_len_ptr, int* zero_ptr, float* scale_ptr);
 /**
- * \brief : Get NN model output buffer and size
+ * \brief : Get NN model output buffer and size for a specific output tensor
+ *
+ * For models with multiple outputs, this function retrieves the output buffer and size
+ * for a specific output tensor. For single-output models, use output_index=0.
+ *
+ * \param[in] object        : Pointer of model object.
+ * \param[out] out_pptr     : Pointer of output buffer pointer
+ * \param[out] size_ptr     : Pointer of output size (number of elements)
+ * \param[in] output_index  : Index of the output tensor (0 to output_count-1)
+ *
+ * \return                  : MTB_ML_RESULT_SUCCESS - success
+ *                          : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid or output_index is out of range.
+ */
+cy_rslt_t mtb_ml_model_get_output_tensor(const mtb_ml_model_t *object, MTB_ML_DATA_T **out_pptr, int* size_ptr, int output_index);
+
+/**
+ * \brief : Get NN model output buffer and size (convenience wrapper for single-output models)
+ *
+ * This is a convenience function for single-output models that retrieves the first output tensor.
+ * For multi-output models, use mtb_ml_model_get_output_tensor() instead.
  *
  * \param[in] object     : Pointer of model object.
  * \param[out] out_pptr  : Pointer of output buffer pointer
@@ -260,6 +339,22 @@ cy_rslt_t mtb_ml_model_get_input_detail(const mtb_ml_model_t *object, int index,
  *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
  */
 cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **out_pptr, int* size_ptr);
+
+/**
+ * \brief : Load and concatenate all output tensors into a single buffer
+ *
+ * For multi-output models, this function copies and concatenates data from all output tensors
+ * into a single pre-allocated buffer. The concatenation follows the order of output tensors
+ * using their concat_offset_bytes values.
+ *
+ * \param[in] object        : Pointer of model object.
+ * \param[in] output_pptr   : Pointer to pre-allocated output buffer pointer.
+ *                            Buffer must be at least object->output_concat_bytes in size.
+ *
+ * \return                  : MTB_ML_RESULT_SUCCESS - success
+ *                          : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
+ */
+cy_rslt_t mtb_ml_model_load_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr);
 
 /**
  * \brief : Get NN model output details

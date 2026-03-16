@@ -11,7 +11,7 @@ The ModusToolbox™ ML Middleware Library is a set of helper functions to handle
 
 ## Requirements
 
-* [ModusToolbox™ software](https://www.cypress.com/products/modustoolbox-software-environment) v3.3 or greater
+* [ModusToolbox™ software](https://www.cypress.com/products/modustoolbox-software-environment) v3.6 or greater
 * Programming Language: C
 * Associated Parts: See "Supported Kits" section below.
 
@@ -22,9 +22,9 @@ The ModusToolbox™ ML Middleware Library is a set of helper functions to handle
 
 ## Supported Toolchains (make variable 'TOOLCHAIN')
 
-* GNU Arm® Embedded Compiler 11.3.1.67 (`GCC_ARM`)
+* GNU Arm® Embedded Compiler 14.2 (`GCC_ARM`)
 * ARM Compiler v6.22 (`ARM`)
-* LLVM Embedded Toolchain for ARM v19.1.1 (`LLVM_ARM`)
+* LLVM Embedded Toolchain for ARM v19.1.5 (`LLVM_ARM`)
 
 The ModusToolbox™ ML Middleware library supports the following operating systems:
 - Windows 7 and greater
@@ -300,4 +300,4 @@ The following resources contain more information:
 * [ModusToolbox™](https://www.cypress.com/products/modustoolbox)
 
 ---
-© 2021-2025, Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.
+© 2021-2026, Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.

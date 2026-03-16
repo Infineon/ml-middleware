@@ -6,7 +6,7 @@
 *
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -37,6 +37,7 @@
 * system or application assumes all risk of such use and in doing so agrees to
 * indemnity Cypress against all liability.
 *******************************************************************************/
+#include <string.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include "mtb_ml.h"
@@ -71,8 +72,9 @@ static tflite::AllOpsResolver resolver;
 template <typename inputT>
 class MTBTFLiteMicro {
  public:
-  // The lifetimes of model, op_resolver, tensor_arena must exceed
-  // that of the created MicroBenchmarkRunner object.
+  /* The lifetimes of model, op_resolver, tensor_arena must exceed
+   * that of the created MicroBenchmarkRunner object.
+   */
   MTBTFLiteMicro(const uint8_t* model,
                        uint8_t* tensor_arena, int tensor_arena_size,
                        const tflite::MicroOpResolver& op_resolver,
@@ -80,11 +82,53 @@ class MTBTFLiteMicro {
       : interpreter_(GetModel(model), op_resolver, tensor_arena,
                      tensor_arena_size, resource_variables, nullptr) {
       allocate_status_ = interpreter_.AllocateTensors();
-      model_ = GetModel(model);
+
+      /* Extract multi-input/output configuration */
+      input_count_  = interpreter_.inputs_size();
+      output_count_ = interpreter_.outputs_size();
+      input_meta_.clear();
+      output_meta_.clear();
+
+      size_t input_concat_total = 0;
+      for (int i = 0; i < input_count_; ++i) {
+        TfLiteTensor* t = interpreter_.input(i);
+        TensorMeta m;
+        m.ptr = GetTensorData<inputT>(t);
+        m.bytes = t->bytes;
+        m.elements = tflite::ElementCount(*t->dims);
+        m.dim_len = t->dims->size;
+        m.dims = t->dims->data;
+        m.zero_point = t->params.zero_point;
+        m.scale = t->params.scale;
+        m.type = t->type;
+        m.concat_offset_bytes = input_concat_total;
+        input_concat_total += m.bytes;
+        input_meta_.push_back(m);
+      }
+      input_concat_total_bytes_ = input_concat_total;
+
+      size_t output_concat_total = 0;
+      for (int i = 0; i < output_count_; ++i) {
+        TfLiteTensor* t = interpreter_.output(i);
+        TensorMeta m;
+        /* Note: output storage type may differ from inputT for float models. */
+        m.ptr = reinterpret_cast<inputT*>(GetTensorData<void>(t));
+        m.bytes = t->bytes;
+        m.elements = tflite::ElementCount(*t->dims);
+        m.dim_len = t->dims->size;
+        m.dims = t->dims->data;
+        m.zero_point = t->params.zero_point;
+        m.scale = t->params.scale;
+        m.type = t->type;
+        m.concat_offset_bytes = output_concat_total;
+        output_concat_total += m.bytes;
+        output_meta_.push_back(m);
+      }
+      output_concat_total_bytes_ = output_concat_total;
   }
 
   TfLiteStatus RunSingleIteration() {
-    // Run the model on this input and return the status.
+    /* Run the model on this input and return the status. */
     return interpreter_.Invoke();
   }
 
@@ -107,16 +151,33 @@ class MTBTFLiteMicro {
   float  input_scale( int index=0) { return interpreter_.input(index)->params.scale; }
   int    output_zero_point( int index=0) { return interpreter_.output(index)->params.zero_point; }
   float  output_scale( int index=0) { return interpreter_.output(index)->params.scale; }
-
   inputT* output_ptr(int index = 0) { return GetTensorData<inputT>(Output(index)); }
   size_t output_size(int index = 0) { return interpreter_.output(index)->bytes; }
   size_t output_elements(int index = 0) { return  tflite::ElementCount(*(interpreter_.output(index)->dims));}
   int    output_dims_len(int index=0) {return interpreter_.output(index)->dims->size; }
   int *  output_dims( int index=0) { return &interpreter_.output(index)->dims->data[0]; }
-  size_t get_used_arena_size() { return interpreter_.arena_used_bytes(); }
-  int get_model_time_steps(int index=0) { return interpreter_.input(0)->dims->data[1]; }
 
- void SetInput(const inputT* custom_input, int recurrent_ts_size, int input_index = 0) {
+  /* multi-tensor metadata and counts */
+  struct TensorMeta {
+    inputT* ptr;              /* pointer to tensor data */
+    size_t  bytes;            /* size in bytes */
+    size_t  elements;         /* number of elements */
+    int     dim_len;          /* dims length */
+    int*    dims;             /* dims pointer */
+    int     zero_point;       /* quant zero_point */
+    float   scale;            /* quant scale */
+    TfLiteType type;          /* tensor type */
+    size_t  concat_offset_bytes; /* offset within concatenated view */
+  };
+
+  int input_count() const { return input_count_; }
+  int output_count() const { return output_count_; }
+  const std::vector<TensorMeta>& inputs_meta() const { return input_meta_; }
+  const std::vector<TensorMeta>& outputs_meta() const { return output_meta_; }
+  size_t input_concat_bytes() const { return input_concat_total_bytes_; }
+  size_t output_concat_bytes() const { return output_concat_total_bytes_; }
+
+ void SetInput(const inputT* custom_input, int input_index) {
     TfLiteTensor* input = interpreter_.input(input_index);
     inputT* input_buffer = tflite::GetTensorData<inputT>(input);
     /* Use memcpy instead of a for loop */
@@ -126,12 +187,27 @@ class MTBTFLiteMicro {
   void PrintAllocations() const {
     interpreter_.GetMicroAllocator().PrintAllocations();
   }
+  size_t get_used_arena_size() { return interpreter_.arena_used_bytes(); }
+
+  int get_model_time_steps(int index=0) {
+    for (int i = 0; i < input_count_; ++i) {
+      if (interpreter_.input(i)->dims->size > 2) {
+        return interpreter_.input(i)->dims->data[1];
+      }
+    }
+    return interpreter_.input(0)->dims->data[1];
+  }
 
  private:
   tflite::RecordingMicroInterpreter interpreter_;
   TfLiteStatus allocate_status_;
-  const Model* model_;
-
+  /* Multi-input/output metadata and counts */
+  int input_count_  = 0;
+  int output_count_ = 0;
+  std::vector<TensorMeta> input_meta_;
+  std::vector<TensorMeta> output_meta_;
+  size_t input_concat_total_bytes_ = 0;
+  size_t output_concat_total_bytes_ = 0;
 };
 
 using MTB_TFLM_flt = MTBTFLiteMicro<float>;
@@ -281,6 +357,50 @@ cy_rslt_t mtb_ml_model_init(const mtb_ml_model_bin_t *bin, const mtb_ml_model_bu
     model_object->output_zero_point = TFLMClass->output_zero_point();
     model_object->output_scale = TFLMClass->output_scale();
 
+    /* Multi-tensor fields */
+    model_object->input_count = TFLMClass->input_count();
+    model_object->output_count = TFLMClass->output_count();
+    model_object->input_concat_bytes = TFLMClass->input_concat_bytes();
+    model_object->output_concat_bytes = TFLMClass->output_concat_bytes();
+
+    if (model_object->input_count > 0) {
+        model_object->inputs = (mtb_ml_tensor_desc_t*)calloc(model_object->input_count, sizeof(mtb_ml_tensor_desc_t));
+        for (int i = 0; i < model_object->input_count; ++i) {
+            const auto& m = TFLMClass->inputs_meta()[i];
+            model_object->inputs[i].ptr = (MTB_ML_DATA_T*)m.ptr;
+            model_object->inputs[i].bytes = m.bytes;
+            model_object->inputs[i].elements = m.elements;
+            model_object->inputs[i].dim_len = m.dim_len;
+            model_object->inputs[i].dims = m.dims;
+            model_object->inputs[i].zero_point = m.zero_point;
+            model_object->inputs[i].scale = m.scale;
+            model_object->inputs[i].concat_offset_bytes = (int)m.concat_offset_bytes;
+            model_object->inputs[i].type_size =
+                (m.type == kTfLiteInt8) ? sizeof(int8_t) :
+                (m.type == kTfLiteInt16) ? sizeof(int16_t) :
+                (m.type == kTfLiteFloat32) ? sizeof(float) : 0;
+        }
+    }
+
+    if (model_object->output_count > 0) {
+        model_object->outputs = (mtb_ml_tensor_desc_t*)calloc(model_object->output_count, sizeof(mtb_ml_tensor_desc_t));
+        for (int i = 0; i < model_object->output_count; ++i) {
+            const auto& m = TFLMClass->outputs_meta()[i];
+            model_object->outputs[i].ptr = (MTB_ML_DATA_T*)m.ptr;
+            model_object->outputs[i].bytes = m.bytes;
+            model_object->outputs[i].elements = m.elements;
+            model_object->outputs[i].dim_len = m.dim_len;
+            model_object->outputs[i].dims = m.dims;
+            model_object->outputs[i].zero_point = m.zero_point;
+            model_object->outputs[i].scale = m.scale;
+            model_object->outputs[i].concat_offset_bytes = (int)m.concat_offset_bytes;
+            model_object->outputs[i].type_size =
+                (m.type == kTfLiteInt8) ? sizeof(int8_t) :
+                (m.type == kTfLiteInt16) ? sizeof(int16_t) :
+                (m.type == kTfLiteFloat32) ? sizeof(float) : 0;
+        }
+    }
+
     switch (TFLMClass->model_input_type()) {
     case kTfLiteInt8:
         model_object->input_type_size = sizeof(int8_t);
@@ -327,25 +447,47 @@ cy_rslt_t mtb_ml_model_deinit(mtb_ml_model_t *object)
         return MTB_ML_RESULT_BAD_ARG;
     }
     delete reinterpret_cast<tflite::MTB_TFLM_Class *>(object->tflm_obj);
+    free(object->inputs);   /* Multi-input/output fields */
+    free(object->outputs);  /* Multi-input/output fields */
     free(object->arena_buffer);
     free(object);
 
     return MTB_ML_RESULT_SUCCESS;
 }
 
-cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
+cy_rslt_t mtb_ml_model_inputs(const mtb_ml_model_t *object, MTB_ML_DATA_T *input_ptr, int input_index)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL || object->tflm_obj == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    /* Validate input index bounds */
+    if (input_index < 0 || input_index >= object->input_count)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    /* Ensure source data exists */
+    if (input_ptr != NULL)
+    {
+        tflite::MTB_TFLM_Class *Tflm = reinterpret_cast<tflite::MTB_TFLM_Class *>(object->tflm_obj);
+        Tflm->SetInput(input_ptr, input_index);
+    }
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_invoke(mtb_ml_model_t *object)
 {
     TfLiteStatus ret;
     /* Sanity check of input parameters */
-    if (object == NULL || input == NULL)
+    if (object == NULL)
     {
         return MTB_ML_RESULT_BAD_ARG;
     }
 
     tflite::MTB_TFLM_Class *Tflm = reinterpret_cast<tflite::MTB_TFLM_Class *>(object->tflm_obj);
-
-    /* Set input data */
-    Tflm->SetInput(input, object->recurrent_ts_size);
 
     /* Model profiling */
     if (object->profiling & MTB_ML_PROFILE_ENABLE_MODEL)
@@ -448,7 +590,28 @@ cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
     return MTB_ML_RESULT_SUCCESS;
 }
 
-cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int *size_ptr)
+cy_rslt_t mtb_ml_model_run(mtb_ml_model_t *object, MTB_ML_DATA_T *input)
+{
+    cy_rslt_t result;
+
+    /* Sanity check of input parameters */
+    if (object == NULL || input == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    /* Set input data for single-input model */
+    result = mtb_ml_model_inputs(object, input, 0);
+    if (result != MTB_ML_RESULT_SUCCESS)
+    {
+        return result;
+    }
+
+    /* Invoke the model */
+    return mtb_ml_model_invoke(object);
+}
+
+cy_rslt_t mtb_ml_model_get_output_tensor(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int *size_ptr, int output_index)
 {
     /* Sanity check of input parameters */
     if (object == NULL)
@@ -456,16 +619,45 @@ cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **
         return MTB_ML_RESULT_BAD_ARG;
     }
 
+    /* Validate output_index is within range */
+    if (output_index < 0 || output_index >= object->output_count)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
     if (output_pptr != NULL)
     {
-        *output_pptr = object->output;
+        *output_pptr = object->outputs[output_index].ptr;
     }
 
     if (size_ptr != NULL)
     {
-        *size_ptr = object->output_size;
+        *size_ptr = object->outputs[output_index].elements;
     }
 
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_model_get_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr, int *size_ptr)
+{
+    /* Call mtb_ml_model_get_output_tensor with output_index=0 for backward compatibility */
+    return mtb_ml_model_get_output_tensor(object, output_pptr, size_ptr, 0);
+}
+
+cy_rslt_t mtb_ml_model_load_output(const mtb_ml_model_t *object, MTB_ML_DATA_T **output_pptr)
+{
+    /* Sanity check of input parameters */
+    if (object == NULL || output_pptr == NULL || *output_pptr == NULL)
+    {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+    /* Iterate through all output tensors and concatenate them into the provided buffer */
+    for (int i = 0; i < object->output_count; ++i)
+    {
+        const mtb_ml_tensor_desc_t *tensor = &object->outputs[i];
+        uint8_t *dest = (uint8_t*)(*output_pptr) + tensor->concat_offset_bytes;
+        memcpy(dest, tensor->ptr, tensor->bytes);
+    }
     return MTB_ML_RESULT_SUCCESS;
 }
 
@@ -513,7 +705,7 @@ cy_rslt_t mtb_ml_model_get_input_detail(const mtb_ml_model_t *object, int index,
 
 int mtb_ml_model_get_input_size(const mtb_ml_model_t *object)
 {
-    return object->input_size;
+    return object->input_concat_bytes;
 }
 
 cy_rslt_t mtb_ml_model_profile_config(mtb_ml_model_t *object, mtb_ml_profile_config_t config)

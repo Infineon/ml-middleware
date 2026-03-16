@@ -5,7 +5,7 @@
 * This the header file of ModusToolbox ML middleware utility module
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -150,6 +150,35 @@ cy_rslt_t mtb_ml_utils_model_quantize(const mtb_ml_model_t *obj, const float* in
  *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
  */
 cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequantized_values);
+
+/**
+ * \brief : Quantizes float data for a specific input tensor.
+ *
+ * \param[in] obj        : Pointer of model object.
+ * \param[in] tensor_index : Index of input tensor to quantize
+ * \param[in] input_data : Pointer to input floating point data
+ * \param[out] quantized_values : Buffer to contain quantized values
+ * \param[in] count      : Number of elements to quantize
+ *
+ * \return               : MTB_ML_RESULT_SUCCESS - success
+ *                       : MTB_ML_RESULT_BAD_ARG - if an input parameter is invalid.
+ */
+cy_rslt_t mtb_ml_utils_model_quantize_tensor(const mtb_ml_model_t *obj, int tensor_index,
+                                             const float* input_data, MTB_ML_DATA_T* quantized_values, size_t count);
+
+/**
+ * \brief : Dequantize a specific output tensor
+ *
+ * \param[in] obj        : Pointer of model object.
+ * \param[in] tensor_index : Index of output tensor to dequantize
+ * \param[out] dequantized_values : Buffer for dequantized values
+ * \param[in] count      : Number of elements to dequantize
+ *
+ * \return               : MTB_ML_RESULT_SUCCESS - success
+ *                       : MTB_ML_RESULT_BAD_ARG - if input parameter is invalid.
+ */
+cy_rslt_t mtb_ml_utils_model_dequantize_tensor(const mtb_ml_model_t *obj, int tensor_index,
+                                               float* dequantized_values, size_t count);
 
 /**
  * @} end of Utils_API group

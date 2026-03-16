@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['lib_5ferror',['lib_error',['../structmtb__ml__model__t.html#aecc39e5f86840176fb334bdefb9dcd89',1,'mtb_ml_model_t']]]
+  ['dim_5flen_122',['dim_len',['../structmtb__ml__tensor__desc.html#a57cebbe662b472e04e783af0c9f21cf9',1,'mtb_ml_tensor_desc']]],
+  ['dims_123',['dims',['../structmtb__ml__tensor__desc.html#a8b32ae08fa20b1721a34dcce801846e5',1,'mtb_ml_tensor_desc']]]
 ];

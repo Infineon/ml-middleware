@@ -5,7 +5,7 @@
 * This is the common header file of ModusToolbox ML middleware library.
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -128,10 +128,6 @@ typedef enum
     MTB_ML_PROFILE_ENABLE_LAYER_PER_FRAME      = 8,
     MTB_ML_LOG_ENABLE_MODEL_LOG                = 16
 } mtb_ml_profile_config_t;
-
-/**
- * @} end of Common_Macro group
- */
 
 /******************************************************************************
 * Public definitions

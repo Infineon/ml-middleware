@@ -5,7 +5,7 @@
 * This is the header file of ModusToolbox ML  module
 *
 *******************************************************************************
-* (c) 2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2025-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials

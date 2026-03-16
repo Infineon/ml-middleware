@@ -5,7 +5,7 @@
 * This file contains interface for ML validation data streaming feature
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -121,7 +121,7 @@ extern cyhal_uart_t cy_retarget_io_uart_obj;
 /* NOTE: Must match mtb_ml_regression_info_t in streaming application */
 typedef struct
 {
-    uint32_t output_size;       /* NN model inference classification output size */
+    uint32_t output_size;       /* NN model inference classification output size (in ELEMENTS, not bytes) */
     uint32_t buffer_size;       /* Runtime buffer size required for inference */
     uint32_t model_size;        /* Model's weights & biases */
     uint32_t model_time_steps;  /* Number of model time steps */
@@ -172,14 +172,14 @@ cy_rslt_t mtb_ml_stream_output_data(mtb_ml_stream_interface_t *iface, void *tx_b
     }
 
     /* Send output data */
-    return stream_send_data(iface, tx_buf, iface->output_size * sizeof(MTB_ML_DATA_T), timeout_ms);
+    return stream_send_data(iface, tx_buf, iface->output_size * iface->output_data_size, timeout_ms);
 }
 
 cy_rslt_t mtb_ml_stream_input_data(mtb_ml_stream_interface_t *iface, void *rx_buf, uint32_t timeout_ms)
 {
     if(!iface || !rx_buf)
     {
-        printf("ERROR: mtb_ml_stream_output_data invalid parameters\r\n");
+        printf("ERROR: mtb_ml_stream_input_data invalid parameters\r\n");
         return MTB_ML_RESULT_BAD_ARG;
     }
 
@@ -190,16 +190,9 @@ cy_rslt_t mtb_ml_stream_input_data(mtb_ml_stream_interface_t *iface, void *rx_bu
         printf("ERROR: failed to send frame request to host.\r\n");
         return result;
     }
-    /* If recurrent_ts_size is greater than 1, it indicates a streaming RNN
-    * model where data slicing is required. Otherwise, no slicing is required.
-    * (if recurrent_ts_size is -1, it indicates a non-RNN model, and if
-    * recurrent_ts_size 1, it indicates a non-streaming RNN model where no data
-    * slicing is required.
-    */
-    uint32_t slice_data_into = (iface->x_data_info.recurrent_ts_size < 0) ? 1 : iface->x_data_info.recurrent_ts_size;
-
     /* Get input data */
-    return stream_get_data(iface, rx_buf, (iface->input_size * sizeof(MTB_ML_DATA_T)) / slice_data_into, timeout_ms);
+    return stream_get_data(iface, rx_buf, (iface->input_size * iface->input_data_size) , timeout_ms);
+
 }
 
 cy_rslt_t mtb_ml_inform_host_done( mtb_ml_stream_interface_t *iface, uint32_t timeout_ms)
@@ -315,11 +308,16 @@ static cy_rslt_t stream_verify_test_data(   mtb_ml_stream_interface_t *iface,
             return MTB_ML_RESULT_BAD_ARG;
     }
 
-    /* Initialize interface */
-    iface->input_size = (size_t)test_data_info.input_size;
-    iface->output_size = (size_t)model_object->output_size;
+    /* Initialize interface with concatenated sizes for multi-input/output models.
+     * Desktop software sends/receives data concatenated across all input/output tensors.
+     * Both input_size and output_size are in elements (not bytes).
+     */
+    iface->input_size = (size_t)model_object->input_concat_bytes / model_object->input_type_size;
+    iface->output_size = (size_t)model_object->output_concat_bytes / model_object->output_type_size;
+    iface->input_data_size = (size_t)model_object->input_type_size;
+    iface->output_data_size = (size_t)model_object->output_type_size;
 
-    /* Updata x data info */
+    /* Update x data info */
     iface->x_data_info.num_of_samples = test_data_info.num_of_samples;
     iface->x_data_info.input_size = test_data_info.input_size;
     iface->x_data_info.recurrent_ts_size = test_data_info.recurrent_ts_size;
@@ -375,9 +373,11 @@ static cy_rslt_t send_model_regr_info(mtb_ml_stream_interface_t *iface, const mt
         return result;
     }
 
-    /* Populate model info */
+    /* Populate model info.
+     * output_size is in elements (concatenated across all outputs for multi-output models).
+     */
     model_regr_info.model_size = model_object->model_size;
-    model_regr_info.output_size = model_object->output_size;
+    model_regr_info.output_size = model_object->output_concat_bytes / model_object->output_type_size;
     model_regr_info.buffer_size = model_object->buffer_size;
     model_regr_info.model_time_steps = model_object->model_time_steps;
     model_regr_info.output_zero_point = model_object->output_zero_point;
@@ -445,7 +445,7 @@ static cy_rslt_t stream_uart_send(mtb_data_streaming_vcontext_t* vcontext,
             return MTB_ML_RESULT_COMM_ERROR;
         }
         bytes_sent += count;
-        tx_p = tx_p + (char)count;
+        tx_p = tx_p + count;
         count = requested_tx - bytes_sent;
     }
 

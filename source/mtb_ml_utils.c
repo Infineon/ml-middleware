@@ -6,7 +6,7 @@
 * middleware utility module
 *
 *******************************************************************************
-* (c) 2019-2025, Cypress Semiconductor Corporation (an Infineon company) or
+* (c) 2019-2026, Cypress Semiconductor Corporation (an Infineon company) or
 * an affiliate of Cypress Semiconductor Corporation.  All rights reserved.
 *******************************************************************************
 * This software, including source code, documentation and related materials
@@ -37,6 +37,7 @@
 * system or application assumes all risk of such use and in doing so agrees to
 * indemnity Cypress against all liability.
 *******************************************************************************/
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <inttypes.h>
@@ -346,5 +347,74 @@ cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequan
             size--;
         }
     }
+    return MTB_ML_RESULT_SUCCESS;
+}
+
+cy_rslt_t mtb_ml_utils_model_quantize_tensor(const mtb_ml_model_t *obj, int tensor_index,
+                                             const float* input_data, MTB_ML_DATA_T* quantized_values, size_t count)
+{
+    if (obj == NULL || input_data == NULL || quantized_values == NULL) {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    if (tensor_index < 0 || tensor_index >= obj->input_count) {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    const mtb_ml_tensor_desc_t *tensor = &obj->inputs[tensor_index];
+    size_t elements = (count < tensor->elements) ? count : tensor->elements;
+
+    switch(tensor->type_size)
+    {
+        case sizeof(int8_t):
+            return mtb_ml_utils_convert_flt_to_int8(input_data, (int8_t *)quantized_values, elements,
+                                                    tensor->scale, tensor->zero_point);
+        case sizeof(int16_t):
+            return mtb_ml_utils_convert_flt_to_int16(input_data, (int16_t *)quantized_values, elements,
+                                                     tensor->scale, tensor->zero_point);
+        default:
+            /* Float type - just copy */
+            memcpy(quantized_values, input_data, elements * sizeof(float));
+            return MTB_ML_RESULT_SUCCESS;
+    }
+}
+
+cy_rslt_t mtb_ml_utils_model_dequantize_tensor(const mtb_ml_model_t *obj, int tensor_index,
+                                               float* dequantized_values, size_t count)
+{
+    if (obj == NULL || dequantized_values == NULL) {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    if (tensor_index < 0 || tensor_index >= obj->output_count) {
+        return MTB_ML_RESULT_BAD_ARG;
+    }
+
+    const mtb_ml_tensor_desc_t *tensor = &obj->outputs[tensor_index];
+    size_t elements = (count < tensor->elements) ? count : tensor->elements;
+    MTB_ML_DATA_T *value = tensor->ptr;
+
+    if (tensor->type_size != sizeof(float))
+    {
+        int zero_point = tensor->zero_point;
+        float scale = tensor->scale;
+        for (size_t i = 0; i < elements; i++)
+        {
+            if (tensor->type_size == sizeof(int8_t))
+            {
+                dequantized_values[i] = ((int)(((int8_t *)value)[i]) - zero_point) * scale;
+            }
+            else
+            {
+                dequantized_values[i] = ((int)(((int16_t *)value)[i]) - zero_point) * scale;
+            }
+        }
+    }
+    else
+    {
+        /* Float type - just copy */
+        memcpy(dequantized_values, value, elements * sizeof(float));
+    }
+
     return MTB_ML_RESULT_SUCCESS;
 }
