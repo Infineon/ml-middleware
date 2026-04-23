@@ -50,6 +50,7 @@ extern "C" {
 /* LCOV_EXCL_START (Excluded from the code coverage, until the STOP marker) */
 int __attribute__((weak)) mtb_ml_model_profile_get_tsc(uint64_t *val)
 {
+    (void)val;
     return 0;
 }
 /* LCOV_EXCL_STOP */

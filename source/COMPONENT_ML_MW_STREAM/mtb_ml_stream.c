@@ -285,21 +285,21 @@ static cy_rslt_t stream_verify_test_data(   mtb_ml_stream_interface_t *iface,
         case(MTB_ML_X_DATA_FLOAT32):
             if(input_type_size != sizeof(float))
             {
-                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(float), input_type_size);
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", (int)sizeof(float), input_type_size);
                 return MTB_ML_RESULT_INPUT_ERROR;
             }
             break;
         case(MTB_ML_X_DATA_INT8):
             if(input_type_size != sizeof(int8_t))
             {
-                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int8_t), input_type_size);
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", (int)sizeof(int8_t), input_type_size);
                 return MTB_ML_RESULT_INPUT_ERROR;
             }
             break;
         case(MTB_ML_X_DATA_INT16):
             if(input_type_size != sizeof(int16_t))
             {
-                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", sizeof(int16_t), input_type_size);
+                printf("ERROR: Test data size (%d) does not match model data size (%d).\r\n", (int)sizeof(int16_t), input_type_size);
                 return MTB_ML_RESULT_INPUT_ERROR;
             }
             break;

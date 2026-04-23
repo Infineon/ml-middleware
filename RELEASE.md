@@ -19,6 +19,11 @@ The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 
 ## What Changed?
 
+### v3.3.0
+
+* Fixed FullyConnected (FC) per-channel quantization in NNLite integration
+* Fixed dequantization pointer arithmetic in `mtb_ml_utils_model_dequantize` for correct handling of varying output data type sizes
+
 ### v3.2.0
 
 * Implemented Multi-Input/Multi-Output (MIMO) model support. It is available in both TFLM (with interpreter) and TFLM_LESS (pre-interpreted) configurations
@@ -57,7 +62,7 @@ This version of the was validated for compatibility with the following Software 
 
 | Software and Tools                        | Version       |
 | :---                                      | :----:        |
-| ML TFLiteU                                | 3.2.0         |
+| ML TFLiteU                                | 3.3.0         |
 | ML Coretools                              | 3.1.0         |
 | GCC Compiler                              | 14.2          |
 | ARM Compiler 6                            | 6.22          |

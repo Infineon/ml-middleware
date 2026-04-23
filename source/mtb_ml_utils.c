@@ -320,7 +320,7 @@ cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequan
         return MTB_ML_RESULT_BAD_ARG;
     }
     int size = obj->output_size;
-    MTB_ML_DATA_T *value = obj->output;
+    const uint8_t *value = (const uint8_t *)obj->output;
 
     if (obj->output_type_size != sizeof(float))
     {
@@ -330,12 +330,13 @@ cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequan
         {
             if (obj->output_type_size == sizeof(int8_t))
             {
-                *dequantized_values++ = ((int)(*((int8_t *)value++)) - zero_point) * scale;
+                *dequantized_values++ = ((int)(*(const int8_t *)value) - zero_point) * scale;
             }
             else
             {
-                *dequantized_values++ = ((int)(*((int16_t *)value++)) - zero_point) * scale;
+                *dequantized_values++ = ((int)(*(const int16_t *)value) - zero_point) * scale;
             }
+            value += obj->output_type_size;
             size--;
         }
     }
@@ -343,7 +344,8 @@ cy_rslt_t mtb_ml_utils_model_dequantize(const mtb_ml_model_t *obj, float* dequan
     {   /* Copy the value over */
         while ( size > 0 )
         {
-            *dequantized_values++ = *((float *)value++);
+            *dequantized_values++ = *(const float *)value;
+            value += sizeof(float);
             size--;
         }
     }

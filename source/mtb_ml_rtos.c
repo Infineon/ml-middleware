@@ -68,6 +68,7 @@ void *mtb_ml_mutex_create(void)
     cy_rslt_t res = cy_rtos_init_mutex2(mutex, false);
     if (res != CY_RSLT_SUCCESS) {
         free(mutex);
+        return NULL;
     }
 
     return (void *)mutex;
@@ -131,6 +132,7 @@ void *mtb_ml_sem_create(void)
     cy_rslt_t res = cy_rtos_init_semaphore(sem, configNPU_COUNT, 0);
     if (res != CY_RSLT_SUCCESS) {
         free(sem);
+        return NULL;
     }
 
     return (void *)sem;

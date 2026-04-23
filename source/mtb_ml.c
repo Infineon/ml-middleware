@@ -75,6 +75,9 @@ extern cy_rslt_t mtb_ml_nnlite_deinit(void);
 cy_rslt_t mtb_ml_init(uint32_t priority)
 {
     cy_rslt_t result = MTB_ML_RESULT_SUCCESS;
+#if !defined(COMPONENT_U55) && !defined(COMPONENT_NNLITE2)
+    (void)priority;
+#endif
 
     if (mtb_ml_init_state == 0)
     {
