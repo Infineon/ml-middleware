@@ -19,6 +19,10 @@ The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 
 ## What Changed?
 
+### v3.4.0
+
+* Added macOS arm64 native support for the middleware streaming application (no Rosetta required)
+
 ### v3.3.0
 
 * Fixed FullyConnected (FC) per-channel quantization in NNLite integration
@@ -62,8 +66,8 @@ This version of the was validated for compatibility with the following Software 
 
 | Software and Tools                        | Version       |
 | :---                                      | :----:        |
-| ML TFLiteU                                | 3.3.0         |
-| ML Coretools                              | 3.1.0         |
+| ML TFLiteU                                | 3.4.0         |
+| ML Coretools                              | 3.3.0         |
 | GCC Compiler                              | 14.2          |
 | ARM Compiler 6                            | 6.22          |
 | LLVM Toolchain                            | 19.1.5        |
@@ -73,9 +77,9 @@ Minimum required ModusToolbox™ Software Environment: v3.6
 ## More information
 Use the following links for more information, as needed:
 * [ModusToolbox™ Machine Learning Design Support](https://www.infineon.com/cms/en/design-support/tools/sdk/modustoolbox-software/modustoolbox-machine-learning/)
-* [Cypress Semiconductor, an Infineon Technologies Company](http://www.cypress.com)
+* [Infineon Technologies AG](https://www.infineon.com)
 * [Cypress Semiconductor GitHub](https://github.com/Infineon)
-* [ModusToolbox](https://www.cypress.com/products/modustoolbox)
+* [ModusToolbox](https://www.infineon.com/design-resources/development-tools/sdk/modustoolbox-software)
 
 ---
-© 2021-2026, Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.
+© 2021-2026, Infineon Technologies AG or an affiliate of Infineon Technologies AG.

@@ -89,42 +89,43 @@ $(document).ready(function(){initNavTree('mtb__ml__model_8h_source.html',''); in
 </div><!--header-->
 <div class="contents">
 <div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">/***************************************************************************/</span></div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#if !defined(__MTB_ML_MODEL_H__)</span></div>
-<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">#define __MTB_ML_MODEL_H__</span></div>
-<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160; </div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="preprocessor">#include &quot;mtb_ml_common.h&quot;</span></div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#include &quot;mtb_ml_model_defs.h&quot;</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160; </div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="preprocessor">#if defined(__cplusplus)</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> {</div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160; </div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="comment">/******************************************************************************</span></div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="comment"> * Macros</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="comment"> *****************************************************************************/</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#define MEM_FLAG_SHIFT_PERSISTENT       (0)</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="preprocessor">#define MEM_FLAG_SHIFT_SCRATCH          (1)</span></div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160; </div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">#define MTB_ML_MEM_DYNAMIC_PERSISTENT   (1 &lt;&lt; MEM_FLAG_SHIFT_PERSISTENT)</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor">#define MTB_ML_MEM_DYNAMIC_SCRATCH      (1 &lt;&lt; MEM_FLAG_SHIFT_SCRATCH)</span></div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="preprocessor">#define MTB_ML_MODEL_NAME_LEN           64</span></div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment">/******************************************************************************</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="comment"> * Typedefs</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="comment"> *****************************************************************************/</span></div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment">/******************************************************************************</span></div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="comment">* Public definitions</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="comment">******************************************************************************/</span></div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="comment">/******************************************************************************</span></div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="comment">* Structures</span></div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="comment">******************************************************************************/</span></div>
-<div class="line"><a name="l00073"></a><span class="lineno"><a class="line" href="structmtb__ml__model__buffer__t.html">   73</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct</span></div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;{</div>
-<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160; </div>
-<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa">   80</a></span>&#160;    uint8_t* <a class="code" href="structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa">tensor_arena</a>;              </div>
-<div class="line"><a name="l00081"></a><span class="lineno"><a class="line" href="structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90">   81</a></span>&#160;    <span class="keywordtype">size_t</span> <a class="code" href="structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90">tensor_arena_size</a>;           </div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">#if !defined(__MTB_ML_MODEL_H__)</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;<span class="preprocessor">#define __MTB_ML_MODEL_H__</span></div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; </div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">#include &quot;mtb_ml_common.h&quot;</span></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="preprocessor">#include &quot;mtb_ml_model_defs.h&quot;</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#if defined(__cplusplus)</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">extern</span> <span class="stringliteral">&quot;C&quot;</span> {</div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="preprocessor">#endif</span></div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="comment">/******************************************************************************</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="comment"> * Macros</span></div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="comment"> *****************************************************************************/</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">#define MEM_FLAG_SHIFT_PERSISTENT       (0)</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="preprocessor">#define MEM_FLAG_SHIFT_SCRATCH          (1)</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="preprocessor">#define MTB_ML_MEM_DYNAMIC_PERSISTENT   (1 &lt;&lt; MEM_FLAG_SHIFT_PERSISTENT)</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#define MTB_ML_MEM_DYNAMIC_SCRATCH      (1 &lt;&lt; MEM_FLAG_SHIFT_SCRATCH)</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160; </div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor">#define MTB_ML_MODEL_NAME_LEN           64</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="comment">/******************************************************************************</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="comment"> * Typedefs</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment"> *****************************************************************************/</span></div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160; </div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="comment">/******************************************************************************</span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="comment">* Public definitions</span></div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="comment">******************************************************************************/</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="comment">/******************************************************************************</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="comment">* Structures</span></div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="comment">******************************************************************************/</span></div>
+<div class="line"><a name="l00071"></a><span class="lineno"><a class="line" href="structmtb__ml__model__buffer__t.html">   71</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;{</div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="preprocessor">#if defined(COMPONENT_ML_TFLM) || defined(COMPONENT_ML_TFLM_LESS)</span></div>
+<div class="line"><a name="l00079"></a><span class="lineno"><a class="line" href="structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa">   79</a></span>&#160;    uint8_t* <a class="code" href="structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa">tensor_arena</a>;              </div>
+<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90">   80</a></span>&#160;    <span class="keywordtype">size_t</span> <a class="code" href="structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90">tensor_arena_size</a>;           </div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;} <a class="code" href="structmtb__ml__model__buffer__t.html">mtb_ml_model_buffer_t</a>;</div>
 <div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
 <div class="line"><a name="l00088"></a><span class="lineno"><a class="line" href="structmtb__ml__tensor__desc.html">   88</a></span>&#160;<span class="keyword">typedef</span> <span class="keyword">struct </span><a class="code" href="structmtb__ml__tensor__desc.html">mtb_ml_tensor_desc</a> {</div>
@@ -261,9 +262,9 @@ $(document).ready(function(){initNavTree('mtb__ml__model_8h_source.html',''); in
 <div class="ttc" id="astructmtb__ml__model__bin__t_html_a6a1f6bec559941ea171bc6182f2ef3fd"><div class="ttname"><a href="structmtb__ml__model__bin__t.html#a6a1f6bec559941ea171bc6182f2ef3fd">mtb_ml_model_bin_t::model_size</a></div><div class="ttdeci">const unsigned int model_size</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:122</div></div>
 <div class="ttc" id="astructmtb__ml__model__bin__t_html_aa677ab125ab809058a22f0fc1e846409"><div class="ttname"><a href="structmtb__ml__model__bin__t.html#aa677ab125ab809058a22f0fc1e846409">mtb_ml_model_bin_t::arena_size</a></div><div class="ttdeci">const int arena_size</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:123</div></div>
 <div class="ttc" id="astructmtb__ml__model__bin__t_html_af7c28166d5a33d7b9cfae009bd3f02ac"><div class="ttname"><a href="structmtb__ml__model__bin__t.html#af7c28166d5a33d7b9cfae009bd3f02ac">mtb_ml_model_bin_t::rmf_bin</a></div><div class="ttdeci">tflm_rmf_apis_t rmf_bin</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:131</div></div>
-<div class="ttc" id="astructmtb__ml__model__buffer__t_html"><div class="ttname"><a href="structmtb__ml__model__buffer__t.html">mtb_ml_model_buffer_t</a></div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:74</div></div>
-<div class="ttc" id="astructmtb__ml__model__buffer__t_html_acf0738296497bb679f1eab8fe4f8d4fa"><div class="ttname"><a href="structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa">mtb_ml_model_buffer_t::tensor_arena</a></div><div class="ttdeci">uint8_t * tensor_arena</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:80</div></div>
-<div class="ttc" id="astructmtb__ml__model__buffer__t_html_adf82e4919c852da17dfe8de55063bf90"><div class="ttname"><a href="structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90">mtb_ml_model_buffer_t::tensor_arena_size</a></div><div class="ttdeci">size_t tensor_arena_size</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:81</div></div>
+<div class="ttc" id="astructmtb__ml__model__buffer__t_html"><div class="ttname"><a href="structmtb__ml__model__buffer__t.html">mtb_ml_model_buffer_t</a></div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:72</div></div>
+<div class="ttc" id="astructmtb__ml__model__buffer__t_html_acf0738296497bb679f1eab8fe4f8d4fa"><div class="ttname"><a href="structmtb__ml__model__buffer__t.html#acf0738296497bb679f1eab8fe4f8d4fa">mtb_ml_model_buffer_t::tensor_arena</a></div><div class="ttdeci">uint8_t * tensor_arena</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:79</div></div>
+<div class="ttc" id="astructmtb__ml__model__buffer__t_html_adf82e4919c852da17dfe8de55063bf90"><div class="ttname"><a href="structmtb__ml__model__buffer__t.html#adf82e4919c852da17dfe8de55063bf90">mtb_ml_model_buffer_t::tensor_arena_size</a></div><div class="ttdeci">size_t tensor_arena_size</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:80</div></div>
 <div class="ttc" id="astructmtb__ml__model__t_html"><div class="ttname"><a href="structmtb__ml__model__t.html">mtb_ml_model_t</a></div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:140</div></div>
 <div class="ttc" id="astructmtb__ml__model__t_html_a02994e708a47643a9214fe50644a80b4"><div class="ttname"><a href="structmtb__ml__model__t.html#a02994e708a47643a9214fe50644a80b4">mtb_ml_model_t::output_concat_bytes</a></div><div class="ttdeci">size_t output_concat_bytes</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:165</div></div>
 <div class="ttc" id="astructmtb__ml__model__t_html_a068123317a12d1772978801946218849"><div class="ttname"><a href="structmtb__ml__model__t.html#a068123317a12d1772978801946218849">mtb_ml_model_t::model_time_steps</a></div><div class="ttdeci">int model_time_steps</div><div class="ttdef"><b>Definition:</b> mtb_ml_model.h:156</div></div>

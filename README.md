@@ -44,7 +44,8 @@ Middleware library is provided in the form of the source code. There are two way
 
 ### Using the library - ML inference engines
 
-This library supports ml-tflite-micro inference library only. ml-inference is deprecated.
+This library supports the following inference backends:
+* **ml-tflite-micro** (default) — TensorFlow Lite Micro runtime. ml-inference is deprecated.
 
 The ml-tflite-micro library is available as a ModusToolbox™ asset. Use the following GitHub link: [https://github.com/infineon/ml-tflite-micro](https://github.com/infineon/ml-tflite-micro). You can add a dependency file (mtb format) under the `deps` folder or use the `Library Manager` to add it to your application. It is available under Library -> Machine Learning -> ml-tflite-micro.
 
@@ -300,4 +301,4 @@ The following resources contain more information:
 * [ModusToolbox™](https://www.cypress.com/products/modustoolbox)
 
 ---
-© 2021-2026, Cypress Semiconductor Corporation (an Infineon company) or an affiliate of Cypress Semiconductor Corporation.
+© 2021-2026, Infineon Technologies AG or an affiliate of Infineon Technologies AG.
