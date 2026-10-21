@@ -19,6 +19,16 @@ The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 
 ## What Changed?
 
+### v3.5.0
+
+* Updated compatibility with the current ModusToolbox ML asset line: `ml-tflite-micro` v3.5.0 and `ml-executorch` v1.2.0
+* Added experimental support of ExecuTorch inference backend (`COMPONENT_ML_EXECUTORCH`)
+    * inference structures and primitives for Executorch models run-time
+    * CPU-only and U55 inference support
+    * Pre-computed memory-pool sizes support during conversion in FW for .pte models
+* Migrated from LLVM 19 to LLVM 22 and validated
+* Fixed U55 cache maintenance for MIMO models by cleaning every input tensor and invalidating every output tensor
+
 ### v3.4.0
 
 * Added macOS arm64 native support for the middleware streaming application (no Rosetta required)
@@ -62,17 +72,18 @@ The MTB-ML Middleware library supports Windows, Linux and Mac OS.
 * Initial release
 
 ## Supported Software and Tools
-This version of the was validated for compatibility with the following Software and Tools:
+This version was validated for compatibility with the following Software and Tools:
 
 | Software and Tools                        | Version       |
 | :---                                      | :----:        |
-| ML TFLiteU                                | 3.4.0         |
-| ML Coretools                              | 3.3.0         |
+| ML TFLite Micro                           | 3.5.0         |
+| ML Executorch                             | 1.2.0         |
+| ML Coretools                              | 3.4.0         |
 | GCC Compiler                              | 14.2          |
 | ARM Compiler 6                            | 6.22          |
-| LLVM Toolchain                            | 19.1.5        |
+| LLVM Toolchain                            | 22.1.0        |
 
-Minimum required ModusToolbox™ Software Environment: v3.6
+Minimum required ModusToolbox™ Software Environment: v3.8
 
 ## More information
 Use the following links for more information, as needed:

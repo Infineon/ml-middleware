@@ -286,7 +286,11 @@ cy_rslt_t mtb_ml_utils_print_model_info(const mtb_ml_model_t *obj)
     }
 
     printf("\r\n***************************************************\r\n");
+#if defined(COMPONENT_ML_EXECUTORCH)
+    printf("MTB ExecuTorch inference\r\n");
+#else
     printf("MTB Tflite-Micro inference\r\n");
+#endif
     printf("Model name       \t:\t%s\r\n", obj->name);
     printf("Model size       \t:\t%-7.2f kB\r\n", obj->model_size / 1024.0);
     printf("Buffer size      \t:\t%-7.2f kB\r\n", obj->buffer_size / 1024.0);

@@ -8,10 +8,11 @@ The ModusToolbox™ ML Middleware Library is a set of helper functions to handle
 * mtb_ml_utils  - functions to help handling the inputs/outputs of a ML model
 * mtb_ml_model  - functions to initialize and inference a ML model
 * mtb_ml_stream - functions to stream validation data
+* mtb_ml_executorch - experimental ExecuTorch inference backend (`COMPONENT_ML_EXECUTORCH`)
 
 ## Requirements
 
-* [ModusToolbox™ software](https://www.cypress.com/products/modustoolbox-software-environment) v3.6 or greater
+* [ModusToolbox™ software](https://www.cypress.com/products/modustoolbox-software-environment) v3.8 or greater
 * Programming Language: C
 * Associated Parts: See "Supported Kits" section below.
 
@@ -46,6 +47,7 @@ Middleware library is provided in the form of the source code. There are two way
 
 This library supports the following inference backends:
 * **ml-tflite-micro** (default) — TensorFlow Lite Micro runtime. ml-inference is deprecated.
+* **ExecuTorch** (experimental) — PyTorch ExecuTorch runtime (`COMPONENT_ML_EXECUTORCH`).
 
 The ml-tflite-micro library is available as a ModusToolbox™ asset. Use the following GitHub link: [https://github.com/infineon/ml-tflite-micro](https://github.com/infineon/ml-tflite-micro). You can add a dependency file (mtb format) under the `deps` folder or use the `Library Manager` to add it to your application. It is available under Library -> Machine Learning -> ml-tflite-micro.
 

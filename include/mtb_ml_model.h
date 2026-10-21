@@ -78,6 +78,12 @@ typedef struct
 /** Model buffer parameters for TfLite-Micro inference engine */
     uint8_t* tensor_arena;              /**< the pointer of tensor arena buffer provided by application */
     size_t tensor_arena_size;           /**< the size of ML tensor arena buffer provided by application */
+#elif defined(COMPONENT_ML_EXECUTORCH)
+/** Model buffer parameters for ExecuTorch inference engine */
+    uint8_t* temp_allocation_pool;      /**< the pointer of temp allocator buffer provided by application */
+    size_t temp_allocation_pool_size;   /**< the size of temp allocator buffer provided by application */
+    uint8_t* method_allocation_pool;    /**< the pointer of method allocator buffer provided by application */
+    size_t method_allocation_pool_size; /**< the size of method allocator buffer provided by application */
 #endif
 ///@}
 } mtb_ml_model_buffer_t;
@@ -121,6 +127,16 @@ typedef struct
     const uint8_t *      model_bin;     /**< the pointer of Tflite model */
     const unsigned int   model_size;    /**< the size of Tflite model */
     const int            arena_size;    /**< the size of arena buffer for Tflite model */
+///@}
+#elif defined(COMPONENT_ML_EXECUTORCH)
+/** @name COMPONENT_ML_EXECUTORCH
+ *  Model parameters for ExecuTorch
+ */
+///@{
+    const uint8_t *      model_bin;              /**< the pointer of ExecuTorch model */
+    const unsigned int   model_size;             /**< the size of ExecuTorch model */
+    const int            method_allocator_size;  /**< the size of method allocator buffer */
+    const int            temp_allocator_size;    /**< the size of temporary allocator buffer */
 ///@}
 #endif
 #if defined(COMPONENT_ML_TFLM_LESS)
@@ -191,6 +207,13 @@ typedef struct
  */
 /**@{*/
     uint8_t *arena_buffer;              /**< pointer of allocated tensor arena buffer */
+#elif defined(COMPONENT_ML_EXECUTORCH)
+/** @name COMPONENT_ML_EXECUTORCH
+ *  Model runtime object fields for ExecuTorch allocators
+ */
+/**@{*/
+    uint8_t *temp_allocation_pool;      /**< pointer of allocated temp allocator buffer */
+    uint8_t *method_allocation_pool;    /**< pointer of allocated method allocator buffer */
 #endif
 #if defined(COMPONENT_ML_TFLM_LESS)
 /** @name COMPONENT_ML_TFLM_LESS

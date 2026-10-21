@@ -501,14 +501,27 @@ cy_rslt_t mtb_ml_model_invoke(mtb_ml_model_t *object)
 #if defined(COMPONENT_U55)
     if(mtb_ml_get_cache_mgmt_type() == MTB_ML_ETHOSU_CACHE_MGMT_OUTER_LAYERS)
     {
-        SCB_CleanDCache_by_Addr((uint32_t *)object->input, object->input_size);
+        /* Clean D-cache for ALL input tensors (not just index 0) so the NPU
+           reads correct data.  Multi-input stateful models have state tensors
+           that the CPU writes between invocations - these must also be flushed. */
+        const auto& in_meta = Tflm->inputs_meta();
+        for (int i = 0; i < Tflm->input_count(); ++i)
+        {
+            SCB_CleanDCache_by_Addr((uint32_t *)in_meta[i].ptr, in_meta[i].bytes);
+        }
     }
 #endif
     ret = Tflm->RunSingleIteration();
 #if defined(COMPONENT_U55)
     if(mtb_ml_get_cache_mgmt_type() == MTB_ML_ETHOSU_CACHE_MGMT_OUTER_LAYERS)
     {
-        SCB_InvalidateDCache_by_Addr((uint32_t *)object->output, object->output_size);
+        /* Invalidate D-cache for ALL output tensors so the CPU reads the NPU's
+           results, including next_state_* tensors fed back as inputs. */
+        const auto& out_meta = Tflm->outputs_meta();
+        for (int i = 0; i < Tflm->output_count(); ++i)
+        {
+            SCB_InvalidateDCache_by_Addr((uint32_t *)out_meta[i].ptr, out_meta[i].bytes);
+        }
     }
 #endif
     if ( ret != kTfLiteOk )
